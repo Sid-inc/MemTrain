@@ -1,109 +1,73 @@
-import { ShapeRenderer } from "../game-objects/shapes.js";
 import { GameConfig } from "../config.js";
-import { GameScreen } from "../base/game-screen.js";
+import { State } from "../state.js";
 import { GameState } from "../game-state.js";
+import { GameScreen } from "../base/game-screen.js";
+import { ShapeRenderer } from "../game-objects/shapes.js";
+import { Timer } from "../game-objects/timer.js";
+import { ResultPanel } from "../game-objects/result-panel.js";
+import { ColorPalette } from "../game-objects/color-palette.js";
+import { Instruction } from "../ui-components/Instruction.js"
 
 export class Game extends GameScreen {
   constructor(ctx, state, gameManager) {
     super(ctx, state);
-    
+
     this.gameManager = gameManager;
     this.availableArea = {
       width: GameConfig.WIDTH,
       height: GameConfig.HEIGHT
     };
 
-    this.colorPalettePosition = null;
-    this.returnButtonRect = null;
+    this.timer = null;
+
+    this.colorPalette = null;
+    this.instruction = null;
+    this.resultPanel = null;
+    this.init();
+  }
+
+  init() {
+    this.timer = new Timer(this.ctx, "секунд");
+    this.colorPalette = new ColorPalette(this.ctx, "🎨 Выберите цвет");
+    this.instruction = new Instruction(this.ctx);
+    this.resultPanel = new ResultPanel(this.ctx)
+
+    this.gameManager.colorPalette = this.colorPalette;
+    this.gameManager.resultPanel = this.resultPanel;
+  }
+
+  update() {
+    this.gameManager.update();
   }
 
   render() {
-    const { gameState, levelConfig } = this.gameManager;
-    if (!gameState) return;
+    this.update();
+    const { state, config } = this.gameManager.getGameData();
+    if (!state) return;
 
     // Рисуем таймер только на фазе показа
-    if (gameState.currentPhase === GameState.GamePhases.SHOWING) {
-      this.drawTimer(gameState.timeLeft, levelConfig.timeSeconds);
+    if (state.currentPhase === GameState.GamePhases.SHOWING) {
+      this.timer.render(this.availableArea, state.timeLeft, config.timeSeconds);
     }
 
     // Рисуем фигуры
-    this.drawShapes(gameState);
+    this.renderGameBoard(state);
 
     // Инструкция для игрока
-    this.drawInstructions(gameState.currentPhase, gameState.timeLeft);
+    this.renderInstructiun(state.currentPhase, state.timeLeft);
 
     // Если фаза угадывания и выбрана фигура, рисуем палитру рядом с ней
-    if (gameState.currentPhase === GameState.GamePhases.RECALL && gameState.selectedShape) {
-      this.drawColorPalette(gameState);
+    if (state.currentPhase === GameState.GamePhases.RECALL && state.selectedShape) {
+      this.colorPalette.render(state, this.availableArea);
     }
 
     // Если фаза результата, рисуем результат
-    if (gameState.currentPhase === GameState.GamePhases.RESULT && gameState.result) {
-      this.drawResult(gameState.result);
+    if (state.currentPhase === GameState.GamePhases.RESULT && state.result) {
+      this.resultPanel.render(state.result, this.availableArea);
     }
   }
 
-  drawTimer(timeLeft, totalTime) {
-    const ctx = this.ctx;
-    const centerX = this.availableArea.width / 2;
-    const y = 40;
-    const width = 400;
-    const height = 40;
-
-    // Фон таймера
-    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-    ctx.strokeStyle = "#4a6fa5";
-    ctx.lineWidth = 4;
-    ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 5;
-
-    ctx.beginPath();
-    ctx.roundRect(centerX - width / 2, y, width, height, 20);
-    ctx.fill();
-    ctx.stroke();
-    ctx.shadowColor = "transparent";
-
-    // Заполненная часть (прогресс)
-    const progress = timeLeft / totalTime;
-    const fillWidth = width * progress;
-
-    const gradient = ctx.createLinearGradient(
-      centerX - width / 2, y,
-      centerX - width / 2 + fillWidth, y
-    );
-    gradient.addColorStop(0, progress > 0.5 ? "#4ECDC4" : "#FFD166");
-    gradient.addColorStop(1, progress > 0.5 ? "#06D6A0" : "#FF6B8B");
-
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.roundRect(centerX - width / 2, y, fillWidth, height, 20);
-    ctx.fill();
-
-    // Текст таймера
-    ctx.fillStyle = "#333333";
-    ctx.font = 'bold 24px "Comic Sans MS"';
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(
-      `⏱️ ${Math.ceil(timeLeft)} секунд`,
-      centerX,
-      y + height / 2
-    );
-
-    // Мигающая анимация, когда время заканчивается
-    if (timeLeft < 3) {
-      const pulse = Math.sin(Date.now() * 0.01) * 0.5 + 0.5;
-      ctx.strokeStyle = `rgba(255, 0, 0, ${pulse})`;
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.roundRect(centerX - width / 2, y, width, height, 20);
-      ctx.stroke();
-    }
-  }
-
-  drawShapes(state) {
+  renderGameBoard(state) {
     const { shapes, currentPhase, availableColors, userColors, selectedShape } = state;
 
     shapes.forEach((shape, index) => {
@@ -122,51 +86,11 @@ export class Game extends GameScreen {
     });
   }
 
-  drawColorPalette(state) {
-    if (!state.selectedShape) return;
-
-    const selectedShape = state.shapes[state.selectedShape.compositeIndex];
-    const buttonSize = 60;
-    const spacing = 15;
-
-    // Позиция палитры справа от выбранной фигуры
-    let paletteX = selectedShape.position.x + selectedShape.size / 2 + 50;
-    let paletteY = selectedShape.position.y - buttonSize;
-
-    // Если палитра не помещается справа, показываем слева
-    if (paletteX + buttonSize * 2 + spacing + 60 > this.availableArea.width) {
-      paletteX = selectedShape.position.x - selectedShape.size / 2 - buttonSize * 2 - spacing - 80;
-    }
-
-    // Если палитра не помещается по Y, корректируем
-    if (paletteY < 20) paletteY = 20;
-    const maxY = this.availableArea.height -
-      (Math.ceil(state.availableColors.length / 2) * (buttonSize + spacing) + 60);
-    if (paletteY > maxY) paletteY = maxY;
-
-    this.colorPalettePosition = {
-      x: paletteX,
-      y: paletteY,
-      buttonSize,
-      spacing
-    };
-
-    ShapeRenderer.drawColorPalette(
-      this.ctx,
-      state.availableColors,
-      this.colorPalettePosition,
-      buttonSize
-    );
-  }
-
-  drawInstructions(phase, timeLeft) {
-    const centerX = this.availableArea.width / 2;
-    const y = 120; // Ниже таймера
-
+  renderInstructiun(currentPhase, timeLeft) {
     let instruction = "";
     let emoji = "";
 
-    if (phase === "SHOWING") {
+    if (currentPhase === GameState.GamePhases.SHOWING) {
       if (timeLeft > 10) {
         instruction = "Запомни цвета фигур!";
         emoji = "👀";
@@ -177,177 +101,19 @@ export class Game extends GameScreen {
         instruction = "Скоро время закончится!";
         emoji = "🔥";
       }
-    } else if (phase === "RECALL") {
+    } else if (currentPhase === GameState.GamePhases.RECALL) {
       instruction = "Нажми на фигуру и выбери цвет!";
       emoji = "🎨";
-    } else if (phase === "RESULT") {
+    } else if (currentPhase === GameState.GamePhases.RESULT) {
       return; // Не показываем инструкцию на результате
     }
-
-    const ctx = this.ctx;
-    ctx.save();
-
-    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-    ctx.strokeStyle = "#4ECDC4";
-    ctx.lineWidth = 3;
-    ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
-    ctx.shadowBlur = 5;
-
-    ctx.beginPath();
-    ctx.roundRect(centerX - 200, y - 25, 400, 50, 15);
-    ctx.fill();
-    ctx.stroke();
-    ctx.shadowColor = "transparent";
-
-    ctx.fillStyle = "#333333";
-    ctx.font = 'bold 24px "Comic Sans MS"';
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(`${emoji} ${instruction}`, centerX, y);
-
-    ctx.restore();
+    
+    this.instruction.render(instruction, emoji, this.availableArea.width);
   }
 
-  drawResult(result) {
-    const ctx = this.ctx;
-    const centerX = this.availableArea.width / 2;
-    const centerY = this.availableArea.height / 2;
-
-    // Фон результата
-    ctx.fillStyle = "rgba(255, 255, 255, 0.97)";
-    ctx.strokeStyle = result.passed ? "#06D6A0" : "#FF6B8B";
-    ctx.lineWidth = 6;
-    ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
-    ctx.shadowBlur = 30;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 10;
-
-    ctx.beginPath();
-    ctx.roundRect(centerX - 300, centerY - 250, 600, 500, 30);
-    ctx.fill();
-    ctx.stroke();
-    ctx.shadowColor = "transparent";
-
-    // Эмодзи результата
-    const emoji = result.passed ? "🎉🎊✨" : "😢💪🌟";
-    ctx.fillStyle = result.passed ? "#06D6A0" : "#FF6B8B";
-    ctx.font = 'bold 64px "Comic Sans MS"';
-    ctx.textAlign = "center";
-    ctx.fillText(emoji, centerX, centerY - 170);
-
-    // Заголовок
-    ctx.fillStyle = "#333333";
-    ctx.font = 'bold 48px "Comic Sans MS"';
-    ctx.fillText(
-      result.passed ? "Отлично!" : "Хорошая попытка!",
-      centerX,
-      centerY - 90
-    );
-
-    // Результат
-    ctx.fillStyle = "#666666";
-    ctx.font = "bold 36px Arial";
-    ctx.fillText(
-      `Правильных ответов: ${result.correct} из ${result.total}`,
-      centerX,
-      centerY
-    );
-
-    // Процент
-    const percentageColor = result.percentage >= 80 ? "#06D6A0" :
-      result.percentage >= 60 ? "#FFD166" : "#FF6B8B";
-    ctx.fillStyle = percentageColor;
-    ctx.font = 'bold 96px "Comic Sans MS"';
-    ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
-    ctx.shadowBlur = 10;
-    ctx.fillText(`${result.percentage}%`, centerX, centerY + 100);
-    ctx.shadowColor = "transparent";
-
-    // Кнопка возврата
-    this.drawReturnButton(centerX, centerY + 200);
-  }
-
-  drawReturnButton(x, y) {
-    const ctx = this.ctx;
-    const buttonWidth = 250;
-    const buttonHeight = 70;
-
-    const gradient = ctx.createLinearGradient(
-      x - buttonWidth / 2, y - buttonHeight / 2,
-      x - buttonWidth / 2, y + buttonHeight / 2
-    );
-    gradient.addColorStop(0, "#4ECDC4");
-    gradient.addColorStop(1, "#06D6A0");
-
-    ctx.fillStyle = gradient;
-    ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
-    ctx.shadowBlur = 15;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 5;
-
-    ctx.beginPath();
-    ctx.roundRect(x - buttonWidth / 2, y - buttonHeight / 2, buttonWidth, buttonHeight, 20);
-    ctx.fill();
-    ctx.shadowColor = "transparent";
-
-    ctx.strokeStyle = "#FFFFFF";
-    ctx.lineWidth = 4;
-    ctx.stroke();
-
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = 'bold 32px "Comic Sans MS"';
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("🏠 В главное меню", x, y);
-
-    ctx.beginPath();
-    ctx.roundRect(x - buttonWidth / 2 + 10, y - buttonHeight / 2 + 10,
-      buttonWidth - 20, buttonHeight / 2 - 10, 10);
-    ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
-    ctx.fill();
-
-    this.returnButtonRect = {
-      x: x - buttonWidth / 2,
-      y: y - buttonHeight / 2,
-      width: buttonWidth,
-      height: buttonHeight
-    };
-  }
-
-  // Методы для обработки кликов
-  isColorClicked(x, y) {
-    if (!this.colorPalettePosition) return -1;
-
-    const { x: paletteX, y: paletteY, buttonSize, spacing } = this.colorPalettePosition;
-
-    const colorsPerRow = 2;
-    const maxColors = 10; // Максимум 10 цветов
-
-    for (let i = 0; i < maxColors; i++) {
-      const row = Math.floor(i / colorsPerRow);
-      const col = i % colorsPerRow;
-      const buttonX = paletteX + col * (buttonSize + spacing);
-      const buttonY = paletteY + row * (buttonSize + spacing);
-
-      const distance = Math.sqrt(
-        Math.pow(x - (buttonX + buttonSize / 2), 2) +
-        Math.pow(y - (buttonY + buttonSize / 2), 2)
-      );
-
-      if (distance <= buttonSize / 2) {
-        return i;
-      }
-    }
-
-    return -1;
-  }
-
-  isReturnButtonClicked(x, y) {
-    if (!this.returnButtonRect) return false;
-
-    return x >= this.returnButtonRect.x &&
-      x <= this.returnButtonRect.x + this.returnButtonRect.width &&
-      y >= this.returnButtonRect.y &&
-      y <= this.returnButtonRect.y + this.returnButtonRect.height;
+  handleMouseClick(x, y) {
+    const result = this.gameManager.handleGameClick(x, y);
+    if (result && result.type === "RETURN_TO_MENU")
+      this.state.setState(State.UIStates.MENU);
   }
 }

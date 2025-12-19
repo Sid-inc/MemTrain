@@ -90,7 +90,7 @@ export class GameState {
       correct,
       total,
       percentage,
-      passed: percentage >= this.levelConfig.requiredCorrectPercentage
+      passed: percentage >= 99
     };
 
     return this.result;

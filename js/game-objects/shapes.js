@@ -1,3 +1,5 @@
+import { GameState } from "../game-state.js";
+
 export class ShapeRenderer {
   static drawCompositeShape(ctx, shape, phase, availableColors, userColors, isSelected) {
     const { position, size, outerShape, innerShape, outerColorIndex, innerColorIndex, rotation } = shape;
@@ -22,10 +24,10 @@ export class ShapeRenderer {
       ctx.beginPath();
       ctx.arc(position.x, position.y, radius, 0, Math.PI * 2);
       
-      if (phase === "SHOWING") {
+      if (phase === GameState.GamePhases.SHOWING) {
         const outerColor = availableColors[outerColorIndex];
         this.drawShinyCircle(ctx, position, radius, outerColor);
-      } else if (phase === "RECALL") {
+      } else if (phase === GameState.GamePhases.RECALL) {
         if (userColors && userColors.outer !== null) {
           const color = availableColors[userColors.outer];
           this.drawShinyCircle(ctx, position, radius, color);
@@ -78,10 +80,10 @@ export class ShapeRenderer {
       ctx.shadowOffsetX = 3;
       ctx.shadowOffsetY = 3;
       
-      if (phase === "SHOWING") {
+      if (phase === GameState.GamePhases.SHOWING) {
         const innerColor = availableColors[innerColorIndex];
         this.drawShinyTriangle(ctx, position, innerRadius, innerColor);
-      } else if (phase === "RECALL") {
+      } else if (phase === GameState.GamePhases.RECALL) {
         if (userColors && userColors.inner !== null) {
           const color = availableColors[userColors.inner];
           this.drawShinyTriangle(ctx, position, innerRadius, color);
@@ -208,136 +210,6 @@ export class ShapeRenderer {
     }
   }
 
-  static drawColorPalette(ctx, colors, position, buttonSize = 60) {
-    const spacing = 15;
-    const startX = position.x;
-    const startY = position.y;
-    
-    ctx.save();
-    
-    // Фон палитры с эффектом облака
-    ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
-    ctx.strokeStyle = "#FFD700";
-    ctx.lineWidth = 4;
-    ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
-    ctx.shadowBlur = 15;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 5;
-    
-    ctx.beginPath();
-    ctx.roundRect(
-      startX - 30, 
-      startY - 30, 
-      buttonSize * 2 + spacing + 60, 
-      Math.ceil(colors.length / 2) * (buttonSize + spacing) + 60, 
-      25
-    );
-    ctx.fill();
-    ctx.stroke();
-    ctx.shadowColor = "transparent";
-    
-    // Заголовок
-    ctx.fillStyle = "#4a6fa5";
-    ctx.font = 'bold 24px "Comic Sans MS"';
-    ctx.textAlign = "center";
-    ctx.fillText("🎨 Выберите цвет", startX + buttonSize + spacing/2, startY - 10);
-    
-    // Кнопки цветов
-    colors.forEach((color, index) => {
-      const row = Math.floor(index / 2);
-      const col = index % 2;
-      const x = startX + col * (buttonSize + spacing);
-      const y = startY + row * (buttonSize + spacing);
-      
-      // Фон кнопки с градиентом
-      const buttonGradient = ctx.createRadialGradient(
-        x + buttonSize/2, y + buttonSize/2, 0,
-        x + buttonSize/2, y + buttonSize/2, buttonSize/2
-      );
-      buttonGradient.addColorStop(0, "#FFFFFF");
-      buttonGradient.addColorStop(0.5, color);
-      buttonGradient.addColorStop(1, this.darkenColor(color, 30));
-      
-      ctx.fillStyle = buttonGradient;
-      ctx.beginPath();
-      ctx.arc(x + buttonSize/2, y + buttonSize/2, buttonSize/2, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Обводка кнопки
-      ctx.strokeStyle = "#FFFFFF";
-      ctx.lineWidth = 4;
-      ctx.stroke();
-      
-      // Тень кнопки
-      ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
-      ctx.shadowBlur = 10;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
-      ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.shadowColor = "transparent";
-      
-      // Номер цвета
-      ctx.fillStyle = "#FFFFFF";
-      ctx.font = 'bold 20px "Comic Sans MS"';
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(`${index + 1}`, x + buttonSize/2, y + buttonSize/2);
-      
-      // Блик на кнопке
-      ctx.beginPath();
-      ctx.arc(x + buttonSize/3, y + buttonSize/3, buttonSize/5, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-      ctx.fill();
-    });
-    
-    ctx.restore();
-  }
-
-  static drawInstructions(ctx, phase, position, width) {
-    const { x, y } = position;
-    
-    ctx.save();
-    
-    // Фон инструкции
-    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-    ctx.strokeStyle = "#4ECDC4";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.roundRect(x - width/2, y - 30, width, 60, 15);
-    ctx.fill();
-    ctx.stroke();
-    
-    // Текст инструкции
-    ctx.fillStyle = "#333333";
-    ctx.font = 'bold 24px "Comic Sans MS"';
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    
-    let text = "";
-    let emoji = "";
-    
-    switch(phase) {
-      case "SHOWING":
-        text = "Запомните цвета фигур!";
-        emoji = "👀";
-        break;
-      case "RECALL":
-        text = "Нажмите на фигуру и выберите цвет!";
-        emoji = "🎨";
-        break;
-      case "RESULT":
-        text = "Молодец!";
-        emoji = "🎉";
-        break;
-    }
-    
-    ctx.fillText(`${emoji} ${text}`, x, y);
-    
-    ctx.restore();
-  }
-
   static darkenColor(color, percent) {
     // Упрощенная функция для затемнения цвета
     const num = parseInt(color.slice(1), 16);
@@ -358,45 +230,5 @@ export class ShapeRenderer {
     const B = Math.min((num & 0x0000FF) + amt, 255);
     
     return `#${(R * 0x10000 + G * 0x100 + B).toString(16).padStart(6, "0")}`;
-  }
-
-  static drawTimer(ctx, timeLeft, totalTime, position, size) {
-    const { x, y, width, height } = position;
-    const progress = timeLeft / totalTime;
-
-    // Фон полоски
-    ctx.fillStyle = "#E0E0E0";
-    ctx.beginPath();
-    ctx.roundRect(x, y, width, height, height / 2);
-    ctx.fill();
-
-    // Заполненная часть
-    const fillWidth = width * progress;
-    const gradient = ctx.createLinearGradient(x, y, x + fillWidth, y);
-    gradient.addColorStop(0, progress > 0.5 ? "#4ECDC4" : "#FFD166");
-    gradient.addColorStop(1, progress > 0.5 ? "#06D6A0" : "#FF6B8B");
-
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.roundRect(x, y, fillWidth, height, height / 2);
-    ctx.fill();
-
-    // Текст
-    ctx.fillStyle = "#333333";
-    ctx.font = "bold 18px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(
-      `${Math.ceil(timeLeft)} сек`,
-      x + width / 2,
-      y + height / 2
-    );
-
-    // Обводка
-    ctx.strokeStyle = "#4a6fa5";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(x, y, width, height, height / 2);
-    ctx.stroke();
   }
 }

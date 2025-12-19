@@ -32,19 +32,7 @@ export class Renderer {
     this.state.activeScreen.render();
   }
 
-  // renderGameScreen() {
-  //   if (this.gameRenderer && this.gameData) {
-  //     this.gameRenderer.render(this.gameData);
-  //   }
-  // }
-
   setGameData(gameData) {
     this.gameData = gameData;
   }
-
-  // initializeGameRenderer() {
-  //   if (!this.gameRenderer) {
-  //     this.gameRenderer = new GameRenderer(this.ctx);
-  //   }
-  // }
 }

@@ -6,24 +6,22 @@ export class GameManager {
     this.engine = null;
     this.gameLoopId = null;
     this.gameState = null;
-    this.levelConfig = null;
+
+    this.colorPalette = null;
+    this.resultPanel = null;
+
     this.startLevel(levelId);
   }
 
   startLevel(levelId) {
-    this.levelConfig = Levels.find(level => level.id === levelId) || Levels[0];
+    const levelConfig = Levels.find(level => level.id === levelId) || Levels[0];
     const availableArea = {
       width: GameConfig.WIDTH,
       height: GameConfig.HEIGHT
     };
 
-    this.engine = new GameEngine(this.levelConfig);
+    this.engine = new GameEngine(levelConfig);
     this.gameState = this.engine.initialize(availableArea);
-    
-    // Передаем обновления таймера
-    // this.engine.onTimerUpdate = (timeLeft) => {
-    //   // Можно обновлять UI, если нужно
-    // };
     
     this.engine.onPhaseChange = (phase) => {
       console.log(`Фаза изменилась на: ${phase}`);
@@ -33,35 +31,20 @@ export class GameManager {
       console.log("Результат уровня:", result);
     };
 
-    
-    // this.renderer.initializeGameRenderer();
-    // this.renderer.setGameData(this.engine.getGameData());
-    
-    // this.startGameLoop();
+
   }
 
-  startGameLoop() {
-    if (this.gameLoopId) {
-      cancelAnimationFrame(this.gameLoopId);
-    }
-    
-    const gameLoop = () => {
-      if (this.engine) {
-        this.engine.update();
-        this.renderer.setGameData(this.engine.getGameData());
-      }
-      
-      this.gameLoopId = requestAnimationFrame(gameLoop);
-    };
-    
-    gameLoop();
+  update()
+  {
+    this.engine.update();
   }
 
   handleGameClick(x, y) {
+    console.log(`handled click x:${x} y:${y}`);
     if (!this.engine) return null;
     
     // Проверяем клик по палитре цветов
-    const colorIndex = this.renderer.gameRenderer.isColorClicked(x, y);
+    const colorIndex = this.colorPalette.isColorClicked(x, y);
     
     if (colorIndex !== -1) {
       const result = this.engine.selectColor(colorIndex);
@@ -70,13 +53,14 @@ export class GameManager {
     
     // Проверяем клик по фигуре
     const clickResult = this.engine.handleClick(x, y);
-    
+    console.log("shape check result");
+    console.log(clickResult);
     if (clickResult && clickResult.type === "SHAPE_SELECTED") {
       return clickResult;
     }
     
     // Проверяем клик по кнопке возврата
-    if (this.renderer.gameRenderer?.isReturnButtonClicked(x, y)) {
+    if (this.resultPanel.isReturnButtonClicked(x, y)) {
       this.returnToMenu();
       return { type: "RETURN_TO_MENU" };
     }
@@ -85,31 +69,14 @@ export class GameManager {
   }
 
   returnToMenu() {
-    if (this.gameLoopId) {
-      cancelAnimationFrame(this.gameLoopId);
-      this.gameLoopId = null;
-    }
-    
     if (this.engine) {
       this.engine.reset();
     }
     
     this.engine = null;
-    this.renderer.gameRenderer = null;
-    this.renderer.gameData = null;
-    this.ui.state.setState(this.ui.state.UIStates.MENU);
   }
 
-  stop() {
-    if (this.gameLoopId) {
-      cancelAnimationFrame(this.gameLoopId);
-      this.gameLoopId = null;
-    }
-    
-    if (this.engine) {
-      this.engine.reset();
-    }
-    
-    this.engine = null;
+  getGameData() {
+    return this.engine.getGameData();
   }
 }

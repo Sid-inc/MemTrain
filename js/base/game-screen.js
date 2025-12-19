@@ -4,6 +4,7 @@ export class GameScreen {
     this.state = state;
   }
 
+  update() { }
   render() { }
   handleMouseMove() { }
   handleMouseClick() { }

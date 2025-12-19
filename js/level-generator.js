@@ -36,9 +36,11 @@ export class LevelGenerator {
   static generateShapesSettings(levelConfig) {
     const { colorCount, shapeSequence } = levelConfig;
     const shapes = [];
+    const usedInnerColors = [];
     const shapeCount = 3;
+    let outerColorIndexes = [];
 
-    const outerColorIndexes = Array.from({ length: colorCount }, (_, i) => i)
+    outerColorIndexes = Array.from({ length: colorCount }, (_, i) => i)
       .reduce((shuffled, _, i) => {
         const j = Math.floor(Math.random() * (i + 1));
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
@@ -48,10 +50,17 @@ export class LevelGenerator {
     for (let i = 0; i < shapeCount; i++) {
       let innerColor;
 
-      do {
-        innerColor = Math.floor(Math.random() * colorCount);
-      } while (outerColorIndexes[i] === innerColor);
+      for (let candidate = 0; candidate < colorCount; candidate++) {
+        if (candidate !== outerColorIndexes[i] && !usedInnerColors.includes(candidate)) {
+          innerColor = candidate;
+          break;
+        }
+      }
+      if (innerColor === undefined) {
+        innerColor = (outerColorIndexes[i] + 1) % colorCount;
+      }
 
+      usedInnerColors.push(innerColor);
       shapes.push({
         id: i,
         type: "composite",

@@ -87,7 +87,7 @@ export class GameEngine {
   }
 
   handleClick(x, y) {
-    if (!this.gameState || this.gameState.currentPhase !== "RECALL") return null;
+    if (!this.gameState || this.gameState.currentPhase !== GameState.GamePhases.RECALL) return null;
 
     const { shapes } = this.gameState;
     
@@ -142,11 +142,11 @@ export class GameEngine {
   completeLevel() {
     if (!this.gameState) return;
 
-    this.gameState.changePhase("RESULT");
+    this.gameState.changePhase(GameState.GamePhases.RESULT);
     const result = this.gameState.calculateResult();
     
     if (this.onPhaseChange) {
-      this.onPhaseChange("RESULT");
+      this.onPhaseChange(GameState.GamePhases.RESULT);
     }
     
     if (this.onResult) {
