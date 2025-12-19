@@ -1,5 +1,6 @@
 import { Game } from "./screens/game.js";
 import { Menu } from "./screens/menu.js";
+import { GameManager } from "./game-manager.js";
 
 export class State {
   constructor(ctx) {
@@ -25,7 +26,9 @@ export class State {
           this.activeScreen = new Menu(this.ctx, this);
           break;
         case State.UIStates.GAME:
-          this.activeScreen = new Game(this.ctx, this);
+          var levelId = 1;
+          const gameManager = new GameManager(levelId);
+          this.activeScreen = new Game(this.ctx, this, gameManager);
           break;
         case State.UIStates.LEVELS:
           break;

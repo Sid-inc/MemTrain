@@ -1,7 +1,7 @@
 import { State } from "./state.js";
 import { Renderer } from "./renderer.js"
 import { GameConfig } from "./config.js";
-import { GameManager } from "./screens/game/manager.js";
+// import { GameManager } from "./screens/game-manager.js";
 
 export class UI {
   constructor() {
@@ -25,7 +25,6 @@ export class UI {
 
     this.state = new State(this.ctx);
     this.renderer = new Renderer(this.ctx, this.state);
-    this.gameManager = new GameManager(this.renderer, this);
 
     this.setupEventListeners();
     this.renderLoop();
@@ -94,52 +93,52 @@ export class UI {
   //   }
   // }
 
-  handleActiveScreenClick(x, y) {
-    switch (this.state.activeScreen) {
-      case this.state.UIStates.MENU:
-        if (this.renderer.menu && this.renderer.menu.buttons) {
-          this.renderer.menu.buttons.forEach(button => {
-            if (button.containsPoint(x, y)) {
-              switch (button.value) {
-                case "start":
-                  this.startGame();
-                  break;
-                case "levels":
-                  this.state.setState(this.state.UIStates.LEVELS);
-                  console.log("Переходим к уровням");
-                  break;
-                case "gallery":
-                  this.state.setState(this.state.UIStates.GALARY);
-                  console.log("Переходим к наградам/галерее");
-                  break;
-              }
-            }
-          });
-        }
-        break;
-      case this.state.UIStates.GAME:
-        this.handleGameClick(x, y);
-        break;
-      // Добавьте обработку для других экранов
-      case this.state.UIStates.LEVELS:
-        // Обработка кликов для экрана уровней
-        break;
-      case this.state.UIStates.GALARY:
-        // Обработка кликов для галереи
-        break;
-    }
-  }
+  // handleActiveScreenClick(x, y) {
+  //   switch (this.state.activeScreen) {
+  //     case this.state.UIStates.MENU:
+  //       if (this.renderer.menu && this.renderer.menu.buttons) {
+  //         this.renderer.menu.buttons.forEach(button => {
+  //           if (button.containsPoint(x, y)) {
+  //             switch (button.value) {
+  //               case "start":
+  //                 this.startGame();
+  //                 break;
+  //               case "levels":
+  //                 this.state.setState(this.state.UIStates.LEVELS);
+  //                 console.log("Переходим к уровням");
+  //                 break;
+  //               case "gallery":
+  //                 this.state.setState(this.state.UIStates.GALARY);
+  //                 console.log("Переходим к наградам/галерее");
+  //                 break;
+  //             }
+  //           }
+  //         });
+  //       }
+  //       break;
+  //     case this.state.UIStates.GAME:
+  //       this.handleGameClick(x, y);
+  //       break;
+  //     // Добавьте обработку для других экранов
+  //     case this.state.UIStates.LEVELS:
+  //       // Обработка кликов для экрана уровней
+  //       break;
+  //     case this.state.UIStates.GALARY:
+  //       // Обработка кликов для галереи
+  //       break;
+  //   }
+  // }
 
-  startGame() {
-    this.state.setState(this.state.UIStates.GAME);
-    this.gameManager.startLevel(1); // Начинаем с первого уровня
-  }
+  // startGame() {
+  //   this.state.setState(this.state.UIStates.GAME);
+  //   this.gameManager.startLevel(1); // Начинаем с первого уровня
+  // }
 
-  handleGameClick(x, y) {
-    if (this.gameManager) {
-      this.gameManager.handleGameClick(x, y);
-    }
-  }
+  // handleGameClick(x, y) {
+  //   if (this.gameManager) {
+  //     this.gameManager.handleGameClick(x, y);
+  //   }
+  // }
 
   renderLoop() {
     this.renderer.render();

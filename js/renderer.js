@@ -1,6 +1,6 @@
 import { GameConfig } from "./config.js";
 import { Background } from "./background.js";
-import { Menu } from "./screens/menu.js";
+// import { Menu } from "./screens/menu.js";
 // import { GameRenderer } from "./screens/game.js";
 
 export class Renderer {

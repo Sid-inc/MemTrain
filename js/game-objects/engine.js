@@ -1,10 +1,10 @@
-import { GameState } from "./state.js";
-import { LevelGenerator } from "./level-generator.js";
+import { GameState } from "../game-state.js";
+import { LevelGenerator } from "../level-generator.js";
 
 export class GameEngine {
   constructor(levelConfig) {
     this.levelConfig = levelConfig;
-    this.state = null;
+    this.gameState = null;
     this.lastUpdateTime = null;
     this.onPhaseChange = null;
     this.onTimerUpdate = null;
@@ -13,46 +13,44 @@ export class GameEngine {
 
   initialize(availableArea) {
     const availableColors = LevelGenerator.generateColors(this.levelConfig.colorCount);
+    this.gameState = new GameState(this.levelConfig, availableColors);
     
-    this.state = new GameState(this.levelConfig);
-    this.state.availableColors = availableColors;
-    
-    const shapes = LevelGenerator.generateShapes(this.levelConfig, availableArea);
+    const shapes = LevelGenerator.generateShapesSettings(this.levelConfig);
     const laidOutShapes = LevelGenerator.calculateLayout(shapes, availableArea, true);
     
-    this.state.shapes = laidOutShapes;
-    this.state.userColors = laidOutShapes.map(() => ({ outer: null, inner: null }));
+    this.gameState.shapes = laidOutShapes;
+    this.gameState.userColors = laidOutShapes.map(() => ({ outer: null, inner: null }));
     
     // Начинаем с фазы показа с таймером
-    this.state.changePhase("SHOWING");
-    this.state.startTimer();
+    this.gameState.changePhase(GameState.GamePhases.SHOWING);
+    this.gameState.startTimer();
     
     this.lastUpdateTime = Date.now();
     
-    return this.state;
+    return this.gameState;
   }
 
   update() {
-    if (!this.state) return;
+    if (!this.gameState) return;
 
     const currentTime = Date.now();
     const deltaSeconds = (currentTime - this.lastUpdateTime) / 1000;
     this.lastUpdateTime = currentTime;
 
     // Обновляем таймер только на фазе показа
-    if (this.state.currentPhase === "SHOWING" && this.state.timerActive) {
-      const timeEnded = this.state.updateTime(deltaSeconds);
+    if (this.gameState.currentPhase === GameState.GamePhases.SHOWING && this.gameState.timerActive) {
+      const timeEnded = this.gameState.updateTime(deltaSeconds);
       
       if (this.onTimerUpdate) {
-        this.onTimerUpdate(this.state.timeLeft);
+        this.onTimerUpdate(this.gameState.timeLeft);
       }
 
       // Когда время показа закончилось, переходим к фазе ответа
       if (timeEnded) {
-        this.state.changePhase("RECALL");
+        this.gameState.changePhase(GameState.GamePhases.RECALL);
         
         if (this.onPhaseChange) {
-          this.onPhaseChange("RECALL");
+          this.onPhaseChange(GameState.GamePhases.RECALL);
         }
       }
     }
@@ -89,9 +87,9 @@ export class GameEngine {
   }
 
   handleClick(x, y) {
-    if (!this.state || this.state.currentPhase !== "RECALL") return null;
+    if (!this.gameState || this.gameState.currentPhase !== "RECALL") return null;
 
-    const { shapes } = this.state;
+    const { shapes } = this.gameState;
     
     for (let i = 0; i < shapes.length; i++) {
       const shape = shapes[i];
@@ -103,7 +101,7 @@ export class GameEngine {
       if (distanceToCenter <= shape.size / 2) {
         // Проверяем, не кликнули ли по внутреннему треугольнику
         if (this.isPointInTriangle(x, y, shape)) {
-          this.state.selectShape(i, "inner");
+          this.gameState.selectShape(i, "inner");
           return {
             type: "SHAPE_SELECTED",
             compositeIndex: i,
@@ -111,7 +109,7 @@ export class GameEngine {
             shape
           };
         } else {
-          this.state.selectShape(i, "outer");
+          this.gameState.selectShape(i, "outer");
           return {
             type: "SHAPE_SELECTED",
             compositeIndex: i,
@@ -126,26 +124,26 @@ export class GameEngine {
   }
 
   selectColor(colorIndex) {
-    if (!this.state || !this.state.selectedShape) return null;
+    if (!this.gameState || !this.gameState.selectedShape) return null;
 
-    this.state.applyColorToShape(colorIndex);
+    this.gameState.applyColorToShape(colorIndex);
     
-    if (this.state.areAllShapesColored()) {
+    if (this.gameState.areAllShapesColored()) {
       this.completeLevel();
     }
     
     return {
       type: "COLOR_APPLIED",
-      selectedShape: this.state.selectedShape,
+      selectedShape: this.gameState.selectedShape,
       colorIndex
     };
   }
 
   completeLevel() {
-    if (!this.state) return;
+    if (!this.gameState) return;
 
-    this.state.changePhase("RESULT");
-    const result = this.state.calculateResult();
+    this.gameState.changePhase("RESULT");
+    const result = this.gameState.calculateResult();
     
     if (this.onPhaseChange) {
       this.onPhaseChange("RESULT");
@@ -157,13 +155,13 @@ export class GameEngine {
   }
 
   reset() {
-    this.state = null;
+    this.gameState = null;
     this.lastUpdateTime = null;
   }
 
   getGameData() {
     return {
-      state: this.state,
+      state: this.gameState,
       config: this.levelConfig
     };
   }

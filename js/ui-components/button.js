@@ -69,9 +69,13 @@ export class Button {
     }
   }
 
-  update(time) {
+  update(index, time, x, y, width, height) {
     // Пульсация кнопки
     this.pulse = Math.sin(time * 0.002) * 0.05;
+    this.x = x;
+    this.y = y + (height + 20) * index;
+    this.width = width;
+    this.height = height;
 
     // Обновляем блестки только если кнопка в hover
     if (this.isHovered) {

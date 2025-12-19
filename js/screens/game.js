@@ -1,11 +1,13 @@
-import { ShapeRenderer } from "./game/shapes.js";
+import { ShapeRenderer } from "../game-objects/shapes.js";
 import { GameConfig } from "../config.js";
 import { GameScreen } from "../base/game-screen.js";
+import { GameState } from "../game-state.js";
 
 export class Game extends GameScreen {
-  constructor(ctx) {
-    super();
-    this.ctx = ctx;
+  constructor(ctx, state, gameManager) {
+    super(ctx, state);
+    
+    this.gameManager = gameManager;
     this.availableArea = {
       width: GameConfig.WIDTH,
       height: GameConfig.HEIGHT
@@ -15,36 +17,30 @@ export class Game extends GameScreen {
     this.returnButtonRect = null;
   }
 
-  render(gameData) {
-    const { state, config } = gameData;
-    if (!state) return;
-
-    this.clear();
+  render() {
+    const { gameState, levelConfig } = this.gameManager;
+    if (!gameState) return;
 
     // Рисуем таймер только на фазе показа
-    if (state.currentPhase === "SHOWING") {
-      this.drawTimer(state.timeLeft, config.timeSeconds);
+    if (gameState.currentPhase === GameState.GamePhases.SHOWING) {
+      this.drawTimer(gameState.timeLeft, levelConfig.timeSeconds);
     }
 
     // Рисуем фигуры
-    this.drawShapes(state);
+    this.drawShapes(gameState);
 
     // Инструкция для игрока
-    this.drawInstructions(state.currentPhase, state.timeLeft);
+    this.drawInstructions(gameState.currentPhase, gameState.timeLeft);
 
     // Если фаза угадывания и выбрана фигура, рисуем палитру рядом с ней
-    if (state.currentPhase === "RECALL" && state.selectedShape) {
-      this.drawColorPalette(state);
+    if (gameState.currentPhase === GameState.GamePhases.RECALL && gameState.selectedShape) {
+      this.drawColorPalette(gameState);
     }
 
     // Если фаза результата, рисуем результат
-    if (state.currentPhase === "RESULT" && state.result) {
-      this.drawResult(state.result);
+    if (gameState.currentPhase === GameState.GamePhases.RESULT && gameState.result) {
+      this.drawResult(gameState.result);
     }
-  }
-
-  clear() {
-    this.ctx.clearRect(0, 0, this.availableArea.width, this.availableArea.height);
   }
 
   drawTimer(timeLeft, totalTime) {

@@ -14,52 +14,50 @@ export class LevelGenerator {
       "#0088FF"  // Голубой
     ];
 
-    // Выбираем случайные уникальные цвета из палитры
+    // Выбираем случайные цвета из палитры
     const selected = [];
     const available = [...palette];
 
     for (let i = 0; i < count; i++) {
-      if (available.length === 0) {
+      if (available.length < i) {
         // Генерируем случайные яркие цвета
         const hue = Math.floor(Math.random() * 360);
         const saturation = 80 + Math.random() * 20;
         const lightness = 50 + Math.random() * 20;
         selected.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
       } else {
-        const randomIndex = Math.floor(Math.random() * available.length);
-        selected.push(available.splice(randomIndex, 1)[0]);
+        selected.push(available[i]);
       }
     }
 
     return selected;
   }
 
-  static generateShapes(levelConfig, availableArea) {
+  static generateShapesSettings(levelConfig) {
     const { colorCount, shapeSequence } = levelConfig;
     const shapes = [];
     const shapeCount = 3;
 
-    // Генерируем уникальные комбинации цветов
-    const usedCombinations = new Set();
-    
+    const outerColorIndexes = Array.from({ length: colorCount }, (_, i) => i)
+      .reduce((shuffled, _, i) => {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        return shuffled;
+      }, Array.from({ length: colorCount }, (_, i) => i));
+
     for (let i = 0; i < shapeCount; i++) {
-      let outerColor, innerColor;
-      let combinationKey;
-      
+      let innerColor;
+
       do {
-        outerColor = Math.floor(Math.random() * colorCount);
         innerColor = Math.floor(Math.random() * colorCount);
-        combinationKey = `${outerColor}-${innerColor}`;
-      } while (usedCombinations.has(combinationKey) || outerColor === innerColor);
-      
-      usedCombinations.add(combinationKey);
+      } while (outerColorIndexes[i] === innerColor);
 
       shapes.push({
         id: i,
         type: "composite",
         outerShape: shapeSequence[0],
         innerShape: shapeSequence[1],
-        outerColorIndex: outerColor,
+        outerColorIndex: outerColorIndexes[i],
         innerColorIndex: innerColor,
         position: { x: 0, y: 0 },
         size: 0,
@@ -72,26 +70,26 @@ export class LevelGenerator {
 
   static calculateLayout(shapes, availableArea, hasSidePanel = false) {
     const shapeCount = shapes.length;
-    
-    // Увеличиваем минимальный размер фигур для детей
-    const minShapeSize = 150; // Было 100
-    const shapeSpacing = 80; // Было 50
-    
+
+    // Минимальный размер фигур
+    const minShapeSize = 150;
+    const shapeSpacing = 80;
+
     const effectiveWidth = hasSidePanel ? availableArea.width * 0.6 : availableArea.width;
-    
+
     const neededWidth = shapeCount * (minShapeSize + shapeSpacing);
     const useHorizontal = effectiveWidth >= neededWidth;
-    
+
     if (useHorizontal) {
       // Располагаем в строку
       const shapeSize = Math.min(
         minShapeSize,
         (effectiveWidth - (shapeCount + 1) * shapeSpacing) / shapeCount
       );
-      
+
       const startX = (availableArea.width - (shapeCount * (shapeSize + shapeSpacing))) / 2;
       const centerY = availableArea.height / 2;
-      
+
       shapes.forEach((shape, index) => {
         shape.position = {
           x: startX + index * (shapeSize + shapeSpacing) + shapeSize / 2,
@@ -105,10 +103,10 @@ export class LevelGenerator {
         minShapeSize,
         (availableArea.height - (shapeCount + 1) * shapeSpacing) / shapeCount
       );
-      
+
       const centerX = availableArea.width / 2;
       const startY = (availableArea.height - (shapeCount * (shapeSize + shapeSpacing))) / 2;
-      
+
       shapes.forEach((shape, index) => {
         shape.position = {
           x: centerX,

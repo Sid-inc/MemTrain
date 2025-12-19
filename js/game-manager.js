@@ -1,23 +1,29 @@
-import { GameEngine } from "./engine.js";
-import { Levels, GameConfig } from "../../config.js";
+import { GameEngine } from "./game-objects/engine.js";
+import { Levels, GameConfig } from "./config.js";
 
 export class GameManager {
-  constructor(renderer, ui) {
-    this.renderer = renderer;
-    this.ui = ui;
+  constructor(levelId) {
     this.engine = null;
     this.gameLoopId = null;
+    this.gameState = null;
+    this.levelConfig = null;
+    this.startLevel(levelId);
   }
 
-  startLevel(levelId = 1) {
-    const levelConfig = Levels.find(level => level.id === levelId) || Levels[0];
-    
-    this.engine = new GameEngine(levelConfig);
+  startLevel(levelId) {
+    this.levelConfig = Levels.find(level => level.id === levelId) || Levels[0];
+    const availableArea = {
+      width: GameConfig.WIDTH,
+      height: GameConfig.HEIGHT
+    };
+
+    this.engine = new GameEngine(this.levelConfig);
+    this.gameState = this.engine.initialize(availableArea);
     
     // Передаем обновления таймера
-    this.engine.onTimerUpdate = (timeLeft) => {
-      // Можно обновлять UI, если нужно
-    };
+    // this.engine.onTimerUpdate = (timeLeft) => {
+    //   // Можно обновлять UI, если нужно
+    // };
     
     this.engine.onPhaseChange = (phase) => {
       console.log(`Фаза изменилась на: ${phase}`);
@@ -26,18 +32,12 @@ export class GameManager {
     this.engine.onResult = (result) => {
       console.log("Результат уровня:", result);
     };
+
     
-    const availableArea = {
-      width: GameConfig.WIDTH,
-      height: GameConfig.HEIGHT
-    };
+    // this.renderer.initializeGameRenderer();
+    // this.renderer.setGameData(this.engine.getGameData());
     
-    const gameState = this.engine.initialize(availableArea);
-    
-    this.renderer.initializeGameRenderer();
-    this.renderer.setGameData(this.engine.getGameData());
-    
-    this.startGameLoop();
+    // this.startGameLoop();
   }
 
   startGameLoop() {

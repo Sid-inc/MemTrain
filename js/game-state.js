@@ -1,18 +1,18 @@
 export class GameState {
-  constructor(levelConfig) {
+  constructor(levelConfig, availableColors) {
     this.levelConfig = levelConfig;
-    this.currentPhase = this.GamePhases.PREPARATION; // PREPARATION, SHOWING, RECALL, RESULT
+    this.currentPhase = GameState.GamePhases.PREPARATION; // PREPARATION, SHOWING, RECALL, RESULT
     this.shapes = []; // Массив фигур
     this.selectedShape = null;
     this.userColors = []; // Цвета, выбранные игроком
     this.result = null; // { correct: number, total: number, percentage: number }
-    this.availableColors = []; // Доступные цвета для уровня
+    this.availableColors = availableColors; // Доступные цвета для уровня
     this.timeLeft = levelConfig.timeSeconds;
     this.timerActive = false;
     this.isShowingPhase = true;
   }
 
-  GamePhases = {
+  static GamePhases = {
     PREPARATION: "PREPARATION",
     SHOWING: "SHOWING",
     RECALL: "RECALL",
@@ -32,7 +32,7 @@ export class GameState {
       this.timeLeft = Math.max(0, this.timeLeft - delta);
       if (this.timeLeft <= 0) {
         this.timerActive = false;
-        this.isShowingPhase = false; // Заканчиваем фазу показа
+        this.isShowingPhase = false;
         return true;
       }
     }
@@ -99,8 +99,7 @@ export class GameState {
   changePhase(newPhase) {
     this.currentPhase = newPhase;
     
-    // При переходе к фазе ответа останавливаем таймер
-    if (newPhase === "RECALL") {
+    if (newPhase === GameState.GamePhases.RECALL) {
       this.stopTimer();
       this.isShowingPhase = false;
     }
