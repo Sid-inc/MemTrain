@@ -14,7 +14,7 @@ export const Levels = [
     difficulty: 1,
     shapeSequence: ["sphere", "triangle"],
     colorCount: 3,
-    timeSeconds: 15,
+    timeSeconds: 5,
   },
   {
     id: 2,

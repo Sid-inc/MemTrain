@@ -1,3 +1,5 @@
+import { GameState } from "../game-state.js";
+
 export class ResultPanel {
   constructor(ctx) {
     this.ctx = ctx;
@@ -10,9 +12,11 @@ export class ResultPanel {
     const centerX = availableArea.width / 2;
     const centerY = availableArea.height / 2;
 
+    const gradeConfig = this.getGradeConfig(result.grade);
+
     // Фон результата
     ctx.fillStyle = "rgba(255, 255, 255, 0.97)";
-    ctx.strokeStyle = result.passed ? "#06D6A0" : "#FF6B8B";
+    ctx.strokeStyle = gradeConfig.color;
     ctx.lineWidth = 6;
     ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
     ctx.shadowBlur = 30;
@@ -26,42 +30,135 @@ export class ResultPanel {
     ctx.shadowColor = "transparent";
 
     // Эмодзи результата
-    const emoji = result.passed ? "🎉🎊✨" : "😢💪🌟";
-    ctx.fillStyle = result.passed ? "#06D6A0" : "#FF6B8B";
+    ctx.fillStyle = gradeConfig.color;
     ctx.font = 'bold 64px "Comic Sans MS"';
     ctx.textAlign = "center";
-    ctx.fillText(emoji, centerX, centerY - 170);
+    ctx.fillText(gradeConfig.emoji, centerX, centerY - 170);
 
     // Заголовок
-    ctx.fillStyle = "#333333";
+    ctx.fillStyle = gradeConfig.color;
     ctx.font = 'bold 48px "Comic Sans MS"';
-    ctx.fillText(
-      result.passed ? "Отлично!" : "Хорошая попытка!",
-      centerX,
-      centerY - 90
-    );
+    ctx.fillText(gradeConfig.title, centerX, centerY - 90);
+
+    // Подзаголовок
+    ctx.fillStyle = "#666666";
+    ctx.font = 'italic 28px "Comic Sans MS"';
+    ctx.fillText(gradeConfig.subtitle, centerX, centerY - 40);
 
     // Результат
-    ctx.fillStyle = "#666666";
-    ctx.font = "bold 36px Arial";
+    ctx.fillStyle = '#333333';
+    ctx.font = 'bold 36px "Comic Sans MS"';
     ctx.fillText(
       `Правильных ответов: ${result.correct} из ${result.total}`,
       centerX,
-      centerY
+      centerY + 10
     );
 
     // Процент
-    const percentageColor = result.percentage >= 80 ? "#06D6A0" :
-      result.percentage >= 60 ? "#FFD166" : "#FF6B8B";
-    ctx.fillStyle = percentageColor;
+    ctx.fillStyle = gradeConfig.color;
     ctx.font = 'bold 96px "Comic Sans MS"';
     ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
     ctx.shadowBlur = 10;
     ctx.fillText(`${result.percentage}%`, centerX, centerY + 100);
     ctx.shadowColor = "transparent";
 
+    this.renderStars(centerX, centerY + 170, result.grade);
+
     // Кнопка возврата
-    this.drawReturnButton(centerX, centerY + 200);
+    this.drawReturnButton(centerX, centerY + 250);
+  }
+
+  getGradeConfig(grade) {
+    switch (grade) {
+      case GameState.GradeLevels.EXCELLENT:
+        return {
+          title: 'ОТЛИЧНО!',
+          subtitle: 'Идеальный результат!',
+          emoji: '🎉🎊✨',
+          color: '#FFD700',
+          stars: 3
+        };
+      case GameState.GradeLevels.GOOD:
+        return {
+          title: 'ХОРОШО!',
+          subtitle: 'Отличная работа!',
+          emoji: '👍🌟😊',
+          color: '#4ECDC4',
+          stars: 2
+        };
+      case GameState.GradeLevels.SATISFACTORY:
+        return {
+          title: 'УДОВЛЕТВОРИТЕЛЬНО',
+          subtitle: 'Можно лучше!',
+          emoji: '👏💪',
+          color: '#FF6B8B',
+          stars: 1
+        };
+      case GameState.GradeLevels.FAILED:
+        return {
+          title: 'ПОПРОБУЙТЕ ЕЩЁ',
+          subtitle: 'Не сдавайтесь!',
+          emoji: '😢💪🌟',
+          color: '#888888',
+          stars: 0
+        };
+      default:
+        return {
+          title: 'РЕЗУЛЬТАТ',
+          subtitle: '',
+          emoji: '🎯',
+          color: '#4a6fa5',
+          stars: 0
+        };
+    }
+  }
+
+  renderStars(centerX, y, grade) {
+    const ctx = this.ctx;
+    const starCount = this.getGradeConfig(grade).stars;
+    const starSpacing = 70;
+    const totalWidth = 3 * starSpacing;
+    const startX = centerX - totalWidth / 2 + starSpacing / 2;
+    
+    for (let i = 0; i < 3; i++) {
+      const x = startX + i * starSpacing;
+      const isFilled = i < starCount;
+      
+      // Тень звезды
+      ctx.shadowColor = isFilled ? 'rgba(255, 215, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)';
+      ctx.shadowBlur = 15;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 5;
+      
+      // Звезда
+      ctx.fillStyle = isFilled ? '#FFD700' : '#CCCCCC';
+      this.drawStar(ctx, x, y, 30, 15, 5);
+      ctx.fill();
+      
+      // Контур звезды
+      ctx.strokeStyle = isFilled ? '#FF9800' : '#999999';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      
+      ctx.shadowColor = 'transparent';
+    }
+  }
+
+  drawStar(ctx, cx, cy, outerRadius, innerRadius, points) {
+    ctx.beginPath();
+    for (let i = 0; i < points * 2; i++) {
+      const radius = i % 2 === 0 ? outerRadius : innerRadius;
+      const angle = (Math.PI / points) * i;
+      const x = cx + Math.cos(angle) * radius;
+      const y = cy + Math.sin(angle) * radius;
+      
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+    ctx.closePath();
   }
 
   drawReturnButton(x, y) {

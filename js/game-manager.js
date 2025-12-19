@@ -1,4 +1,6 @@
 import { GameEngine } from "./game-objects/engine.js";
+import { GameState } from "./game-state.js";
+import { UserStorage } from "./user-data/user-storage.js";
 import { Levels, GameConfig } from "./config.js";
 
 export class GameManager {
@@ -29,9 +31,9 @@ export class GameManager {
     
     this.engine.onResult = (result) => {
       console.log("Результат уровня:", result);
+      UserStorage.saveLevelResult(levelId, result);
+      UserStorage.updateStats(result);
     };
-
-
   }
 
   update()
@@ -53,8 +55,6 @@ export class GameManager {
     
     // Проверяем клик по фигуре
     const clickResult = this.engine.handleClick(x, y);
-    console.log("shape check result");
-    console.log(clickResult);
     if (clickResult && clickResult.type === "SHAPE_SELECTED") {
       return clickResult;
     }
@@ -65,6 +65,9 @@ export class GameManager {
       return { type: "RETURN_TO_MENU" };
     }
     
+    if (this.gameState.selectedShape)
+      this.gameState.clearSelection();
+
     return null;
   }
 
@@ -77,6 +80,17 @@ export class GameManager {
   }
 
   getGameData() {
-    return this.engine.getGameData();
+    if (!this.engine) return null;
+
+    const gameData = this.engine.getGameData();
+
+    if (gameData.state && gameData.state.currentPhase === GameState.GamePhases.RESULT) {
+      const savedResult = UserStorage.getLevelResult(gameData.state.levelConfig.id);
+      if (savedResult) {
+        gameData.savedResult = savedResult;
+      }
+    }
+
+    return gameData;
   }
 }

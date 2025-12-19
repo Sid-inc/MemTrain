@@ -19,6 +19,13 @@ export class GameState {
     RESULT: "RESULT"
   };
 
+  static GradeLevels = {
+    EXCELLENT: 'excellent',  // 100%
+    GOOD: 'good',           // 80-99%
+    SATISFACTORY: 'satisfactory', // 60-79%
+    FAILED: 'failed'        // <60%
+  };
+
   startTimer() {
     this.timerActive = true;
   }
@@ -85,15 +92,29 @@ export class GameState {
     });
 
     const percentage = Math.round((correct / total) * 100);
+    const grade = this.getGrade(percentage);
 
     this.result = {
       correct,
       total,
       percentage,
-      passed: percentage >= 99
+      grade,
+      passed: grade != GameState.GradeLevels.FAILED
     };
 
     return this.result;
+  }
+
+  getGrade(percentage) {
+    if (percentage === 100) {
+      return GameState.GradeLevels.EXCELLENT;
+    } else if (percentage >= 80) {
+      return GameState.GradeLevels.GOOD;
+    } else if (percentage >= 60) {
+      return GameState.GradeLevels.SATISFACTORY;
+    } else {
+      return GameState.GradeLevels.FAILED;
+    } 
   }
 
   changePhase(newPhase) {
