@@ -35,46 +35,131 @@ export class LevelGenerator {
 
   static generateShapesSettings(levelConfig) {
     const { colorCount, shapeSequence } = levelConfig;
-    const shapes = [];
-    const usedInnerColors = [];
     const shapeCount = 3;
-    let outerColorIndexes = [];
 
-    outerColorIndexes = Array.from({ length: colorCount }, (_, i) => i)
-      .reduce((shuffled, _, i) => {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        return shuffled;
-      }, Array.from({ length: colorCount }, (_, i) => i));
+    const colorCombinations = this.generateUniqueColorCombinations(
+      colorCount,
+      shapeCount,
+      100 // Максимум 30 попыток
+    );
 
-    for (let i = 0; i < shapeCount; i++) {
+    const shapes = colorCombinations.map((combo, i) => ({
+      id: i,
+      type: "composite",
+      outerShape: shapeSequence[0],
+      innerShape: shapeSequence[1],
+      outerColorIndex: combo.outerColorIndex,
+      innerColorIndex: combo.innerColorIndex,
+      position: { x: 0, y: 0 },
+      size: 0,
+      rotation: Math.random() * Math.PI * 2 // Случайный поворот
+    }));
+
+    return shapes;
+  }
+
+  static generateUniqueColorCombinations(colorCount, shapeCount, maxAttempts = 30) {
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+      attempts++;
+
+      try {
+        const outerColors = this.generateUniqueColors(colorCount, shapeCount);
+        const innerColors = this.generateInnerColors(outerColors, colorCount);
+
+        if (this.areColorsUnique(innerColors)) {
+          return outerColors.map((outer, i) => ({
+            outerColorIndex: outer,
+            innerColorIndex: innerColors[i]
+          }));
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+
+    console.warn(`Не удалось сгенерировать уникальные комбинации за ${maxAttempts} попыток. Используем резервный алгоритм.`);
+    return this.generateFallbackColorCombinations(colorCount, shapeCount);
+  }
+
+  static generateUniqueColors(colorCount, count) {
+    if (count > colorCount) {
+      throw new Error(`Невозможно сгенерировать ${count} уникальных цветов из ${colorCount} доступных`);
+    }
+
+    const allColors = Array.from({ length: colorCount }, (_, i) => i);
+    this.shuffleArray(allColors);
+
+    return allColors.slice(0, count);
+  }
+
+  static generateInnerColors(outerColors, colorCount) {
+    const innerColors = [];
+    const usedInnerColors = new Set();
+
+    outerColors.forEach(outerColor => {
+      const candidates = [];
+      for (let color = 0; color < colorCount; color++) {
+        if (color !== outerColor && !usedInnerColors.has(color)) {
+          candidates.push(color);
+        }
+      }
+
+      if (candidates.length > 0) {
+        this.shuffleArray(candidates);
+        const selectedColor = candidates[0];
+        innerColors.push(selectedColor);
+        usedInnerColors.add(selectedColor);
+      } else {
+        throw new Error("Не удалось подобрать уникальный внутренний цвет");
+      }
+    });
+
+    return innerColors;
+  }
+
+  static areColorsUnique(colors) {
+    return new Set(colors).size === colors.length;
+  }
+
+  static generateFallbackColorCombinations(colorCount, shapeCount) {
+    const combinations = [];
+    const outerColors = this.generateUniqueColors(colorCount, shapeCount);
+
+    outerColors.forEach((outerColor, i) => {
       let innerColor;
+      const forbiddenColors = new Set([outerColor]);
 
-      for (let candidate = 0; candidate < colorCount; candidate++) {
-        if (candidate !== outerColorIndexes[i] && !usedInnerColors.includes(candidate)) {
-          innerColor = candidate;
+      if (i > 0 && combinations.length < colorCount - 1) {
+        combinations.forEach(combo => forbiddenColors.add(combo.innerColorIndex));
+      }
+
+      for (let color = 0; color < colorCount; color++) {
+        if (!forbiddenColors.has(color)) {
+          innerColor = color;
           break;
         }
       }
+
       if (innerColor === undefined) {
-        innerColor = (outerColorIndexes[i] + 1) % colorCount;
+        innerColor = (outerColor + 1) % colorCount;
       }
 
-      usedInnerColors.push(innerColor);
-      shapes.push({
-        id: i,
-        type: "composite",
-        outerShape: shapeSequence[0],
-        innerShape: shapeSequence[1],
-        outerColorIndex: outerColorIndexes[i],
-        innerColorIndex: innerColor,
-        position: { x: 0, y: 0 },
-        size: 0,
-        rotation: Math.random() * Math.PI * 2 // Случайный поворот для разнообразия
+      combinations.push({
+        outerColorIndex: outerColor,
+        innerColorIndex: innerColor
       });
-    }
+    });
 
-    return shapes;
+    return combinations;
+  }
+
+  static shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
   }
 
   static calculateLayout(shapes, availableArea, hasSidePanel = false) {

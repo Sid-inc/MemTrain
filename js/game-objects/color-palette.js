@@ -199,4 +199,9 @@ export class ColorPalette {
 
     return -1;
   }
+
+  hide()
+  {
+    this.colorPalettePosition = null;
+  }
 }

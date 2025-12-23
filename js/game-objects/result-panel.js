@@ -1,10 +1,18 @@
-import { GameState } from "../game-state.js";
+import { State } from "../state.js";
+import { Stars } from "../ui-components/stars.js";
 
 export class ResultPanel {
   constructor(ctx) {
     this.ctx = ctx;
 
     this.returnButtonRect = null;
+    this.stars = null;
+    this.init();
+  }
+
+  init()
+  {
+    this.stars = new Stars(this.ctx);
   }
 
   render(result, availableArea) {
@@ -12,7 +20,7 @@ export class ResultPanel {
     const centerX = availableArea.width / 2;
     const centerY = availableArea.height / 2;
 
-    const gradeConfig = this.getGradeConfig(result.grade);
+    const gradeConfig = State.getGradeConfig(result.grade);
 
     // Фон результата
     ctx.fillStyle = "rgba(255, 255, 255, 0.97)";
@@ -62,104 +70,104 @@ export class ResultPanel {
     ctx.fillText(`${result.percentage}%`, centerX, centerY + 100);
     ctx.shadowColor = "transparent";
 
-    this.renderStars(centerX, centerY + 170, result.grade);
+    this.stars.render(centerX, centerY + 170, result.grade);
 
     // Кнопка возврата
     this.drawReturnButton(centerX, centerY + 250);
   }
 
-  getGradeConfig(grade) {
-    switch (grade) {
-      case GameState.GradeLevels.EXCELLENT:
-        return {
-          title: 'ОТЛИЧНО!',
-          subtitle: 'Идеальный результат!',
-          emoji: '🎉🎊✨',
-          color: '#FFD700',
-          stars: 3
-        };
-      case GameState.GradeLevels.GOOD:
-        return {
-          title: 'ХОРОШО!',
-          subtitle: 'Отличная работа!',
-          emoji: '👍🌟😊',
-          color: '#4ECDC4',
-          stars: 2
-        };
-      case GameState.GradeLevels.SATISFACTORY:
-        return {
-          title: 'УДОВЛЕТВОРИТЕЛЬНО',
-          subtitle: 'Можно лучше!',
-          emoji: '👏💪',
-          color: '#FF6B8B',
-          stars: 1
-        };
-      case GameState.GradeLevels.FAILED:
-        return {
-          title: 'ПОПРОБУЙТЕ ЕЩЁ',
-          subtitle: 'Не сдавайтесь!',
-          emoji: '😢💪🌟',
-          color: '#888888',
-          stars: 0
-        };
-      default:
-        return {
-          title: 'РЕЗУЛЬТАТ',
-          subtitle: '',
-          emoji: '🎯',
-          color: '#4a6fa5',
-          stars: 0
-        };
-    }
-  }
+  // getGradeConfig(grade) {
+  //   switch (grade) {
+  //     case GameState.GradeLevels.EXCELLENT:
+  //       return {
+  //         title: 'ОТЛИЧНО!',
+  //         subtitle: 'Идеальный результат!',
+  //         emoji: '🎉🎊✨',
+  //         color: '#FFD700',
+  //         stars: 3
+  //       };
+  //     case GameState.GradeLevels.GOOD:
+  //       return {
+  //         title: 'ХОРОШО!',
+  //         subtitle: 'Отличная работа!',
+  //         emoji: '👍🌟😊',
+  //         color: '#4ECDC4',
+  //         stars: 2
+  //       };
+  //     case GameState.GradeLevels.SATISFACTORY:
+  //       return {
+  //         title: 'УДОВЛЕТВОРИТЕЛЬНО',
+  //         subtitle: 'Можно лучше!',
+  //         emoji: '👏💪',
+  //         color: '#FF6B8B',
+  //         stars: 1
+  //       };
+  //     case GameState.GradeLevels.FAILED:
+  //       return {
+  //         title: 'ПОПРОБУЙТЕ ЕЩЁ',
+  //         subtitle: 'Не сдавайтесь!',
+  //         emoji: '😢💪🌟',
+  //         color: '#888888',
+  //         stars: 0
+  //       };
+  //     default:
+  //       return {
+  //         title: 'РЕЗУЛЬТАТ',
+  //         subtitle: '',
+  //         emoji: '🎯',
+  //         color: '#4a6fa5',
+  //         stars: 0
+  //       };
+  //   }
+  // }
 
-  renderStars(centerX, y, grade) {
-    const ctx = this.ctx;
-    const starCount = this.getGradeConfig(grade).stars;
-    const starSpacing = 70;
-    const totalWidth = 3 * starSpacing;
-    const startX = centerX - totalWidth / 2 + starSpacing / 2;
+  // renderStars(centerX, y, grade) {
+  //   const ctx = this.ctx;
+  //   const starCount = this.getGradeConfig(grade).stars;
+  //   const starSpacing = 70;
+  //   const totalWidth = 3 * starSpacing;
+  //   const startX = centerX - totalWidth / 2 + starSpacing / 2;
     
-    for (let i = 0; i < 3; i++) {
-      const x = startX + i * starSpacing;
-      const isFilled = i < starCount;
+  //   for (let i = 0; i < 3; i++) {
+  //     const x = startX + i * starSpacing;
+  //     const isFilled = i < starCount;
       
-      // Тень звезды
-      ctx.shadowColor = isFilled ? 'rgba(255, 215, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)';
-      ctx.shadowBlur = 15;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 5;
+  //     // Тень звезды
+  //     ctx.shadowColor = isFilled ? 'rgba(255, 215, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)';
+  //     ctx.shadowBlur = 15;
+  //     ctx.shadowOffsetX = 0;
+  //     ctx.shadowOffsetY = 5;
       
-      // Звезда
-      ctx.fillStyle = isFilled ? '#FFD700' : '#CCCCCC';
-      this.drawStar(ctx, x, y, 30, 15, 5);
-      ctx.fill();
+  //     // Звезда
+  //     ctx.fillStyle = isFilled ? '#FFD700' : '#CCCCCC';
+  //     this.drawStar(ctx, x, y, 30, 15, 5);
+  //     ctx.fill();
       
-      // Контур звезды
-      ctx.strokeStyle = isFilled ? '#FF9800' : '#999999';
-      ctx.lineWidth = 3;
-      ctx.stroke();
+  //     // Контур звезды
+  //     ctx.strokeStyle = isFilled ? '#FF9800' : '#999999';
+  //     ctx.lineWidth = 3;
+  //     ctx.stroke();
       
-      ctx.shadowColor = 'transparent';
-    }
-  }
+  //     ctx.shadowColor = 'transparent';
+  //   }
+  // }
 
-  drawStar(ctx, cx, cy, outerRadius, innerRadius, points) {
-    ctx.beginPath();
-    for (let i = 0; i < points * 2; i++) {
-      const radius = i % 2 === 0 ? outerRadius : innerRadius;
-      const angle = (Math.PI / points) * i;
-      const x = cx + Math.cos(angle) * radius;
-      const y = cy + Math.sin(angle) * radius;
+  // drawStar(ctx, cx, cy, outerRadius, innerRadius, points) {
+  //   ctx.beginPath();
+  //   for (let i = 0; i < points * 2; i++) {
+  //     const radius = i % 2 === 0 ? outerRadius : innerRadius;
+  //     const angle = (Math.PI / points) * i;
+  //     const x = cx + Math.cos(angle) * radius;
+  //     const y = cy + Math.sin(angle) * radius;
       
-      if (i === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
-    }
-    ctx.closePath();
-  }
+  //     if (i === 0) {
+  //       ctx.moveTo(x, y);
+  //     } else {
+  //       ctx.lineTo(x, y);
+  //     }
+  //   }
+  //   ctx.closePath();
+  // }
 
   drawReturnButton(x, y) {
     const ctx = this.ctx;

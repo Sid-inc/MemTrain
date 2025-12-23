@@ -1,3 +1,5 @@
+import { Stars } from "./stars.js";
+
 export class Button {
   constructor(x, y, width, height, value, text, options = {}) {
     this.x = x;
@@ -9,6 +11,7 @@ export class Button {
     this.isHovered = false;
     this.isPressed = false;
     this.pulse = 0;
+    this.stars = null;
 
     // Яркие детские цвета
     this.colors = options.colors || [
@@ -36,6 +39,8 @@ export class Button {
     this.shadowBlur = options.shadowBlur || 8;
     this.shadowOffset = options.shadowOffset || 4;
     this.sparkles = options.sparkles !== false; // Блестки по умолчанию включены
+    this.showStars = options.showStars || false;
+    this.starsGrade = options.starsGrade || 0;
 
     // Блестки - фиксированные позиции и состояние
     this.sparkleData = [];
@@ -73,7 +78,7 @@ export class Button {
     // Пульсация кнопки
     this.pulse = Math.sin(time * 0.002) * 0.05;
     this.x = x;
-    this.y = y + (height + 20) * index;
+    this.y = y;
     this.width = width;
     this.height = height;
 
@@ -200,6 +205,9 @@ export class Button {
     );
 
     ctx.restore();
+
+    if (this.showStars)
+      this.renderStars(ctx);
   }
 
   // Вспомогательная функция для скругленных прямоугольников
@@ -271,6 +279,15 @@ export class Button {
     });
 
     ctx.restore();
+  }
+
+  renderStars(ctx)
+  {
+    this.stars = new Stars(ctx);
+
+    const centerX = this.x + this.width / 2; 
+    const y = this.y + this.height - 20;
+    this.stars.render(centerX, y, this.starsGrade, 30);
   }
 
   // Для анимации нажатия

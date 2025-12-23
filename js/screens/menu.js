@@ -108,7 +108,7 @@ export class Menu extends GameScreen {
 
     // Обновляем каждую кнопку
     this.buttons.forEach((button, index) => {
-      button.update(index, this.time, startX, startY, buttonWidth, buttonHeight);
+      button.update(index, this.time, startX, startY + (buttonHeight + 20) * index, buttonWidth, buttonHeight);
     });
   }
 

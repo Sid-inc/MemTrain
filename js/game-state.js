@@ -1,3 +1,5 @@
+import { State } from "./state.js";
+
 export class GameState {
   constructor(levelConfig, availableColors) {
     this.levelConfig = levelConfig;
@@ -17,13 +19,6 @@ export class GameState {
     SHOWING: "SHOWING",
     RECALL: "RECALL",
     RESULT: "RESULT"
-  };
-
-  static GradeLevels = {
-    EXCELLENT: 'excellent',  // 100%
-    GOOD: 'good',           // 80-99%
-    SATISFACTORY: 'satisfactory', // 60-79%
-    FAILED: 'failed'        // <60%
   };
 
   startTimer() {
@@ -99,7 +94,7 @@ export class GameState {
       total,
       percentage,
       grade,
-      passed: grade != GameState.GradeLevels.FAILED
+      passed: grade != State.GradeLevels.FAILED
     };
 
     return this.result;
@@ -107,13 +102,13 @@ export class GameState {
 
   getGrade(percentage) {
     if (percentage === 100) {
-      return GameState.GradeLevels.EXCELLENT;
+      return State.GradeLevels.EXCELLENT;
     } else if (percentage >= 80) {
-      return GameState.GradeLevels.GOOD;
+      return State.GradeLevels.GOOD;
     } else if (percentage >= 60) {
-      return GameState.GradeLevels.SATISFACTORY;
+      return State.GradeLevels.SATISFACTORY;
     } else {
-      return GameState.GradeLevels.FAILED;
+      return State.GradeLevels.FAILED;
     } 
   }
 

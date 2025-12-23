@@ -50,6 +50,7 @@ export class GameManager {
     
     if (colorIndex !== -1) {
       const result = this.engine.selectColor(colorIndex);
+      this.colorPalette.hide();
       return result;
     }
     

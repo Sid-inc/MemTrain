@@ -8,7 +8,6 @@ export class UI {
     this.ctx = null;
     this.state = null;
     this.renderer = null;
-    this.gameManager = null;
 
     this.mouseX = 0;
     this.mouseY = 0;

@@ -90,7 +90,6 @@ export class GameEngine {
     if (!this.gameState || this.gameState.currentPhase !== GameState.GamePhases.RECALL) return null;
 
     const { shapes } = this.gameState;
-    
     for (let i = 0; i < shapes.length; i++) {
       const shape = shapes[i];
       const distanceToCenter = Math.sqrt(
@@ -101,7 +100,6 @@ export class GameEngine {
       if (distanceToCenter <= shape.size / 2) {
         // Проверяем, не кликнули ли по внутреннему треугольнику
         if (this.isPointInTriangle(x, y, shape)) {
-          this.gameState.selectShape(i, "inner");
           return {
             type: "SHAPE_SELECTED",
             compositeIndex: i,
