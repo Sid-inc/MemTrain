@@ -100,6 +100,7 @@ export class GameEngine {
       if (distanceToCenter <= shape.size / 2) {
         // Проверяем, не кликнули ли по внутреннему треугольнику
         if (this.isPointInTriangle(x, y, shape)) {
+          this.gameState.selectShape(i, "inner");
           return {
             type: "SHAPE_SELECTED",
             compositeIndex: i,
