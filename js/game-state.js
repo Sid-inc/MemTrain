@@ -5,8 +5,8 @@ export class GameState {
     this.levelConfig = levelConfig;
     this.currentPhase = GameState.GamePhases.PREPARATION; // PREPARATION, SHOWING, RECALL, RESULT
     this.shapes = []; // Массив фигур
-    this.selectedShape = null;
     this.userColors = []; // Цвета, выбранные игроком
+    this.selectedShape = null;
     this.result = null; // { correct: number, total: number, percentage: number }
     this.availableColors = availableColors; // Доступные цвета для уровня
     this.timeLeft = levelConfig.timeSeconds;
@@ -41,8 +41,8 @@ export class GameState {
     return false;
   }
 
-  selectShape(compositeIndex, shapeType) {
-    this.selectedShape = { compositeIndex, shapeType };
+  selectShape(compositeIndex, shapeType, nestedShapeIndex) {
+    this.selectedShape = { compositeIndex, shapeType, nestedShapeIndex };
   }
 
   clearSelection() {
@@ -51,37 +51,37 @@ export class GameState {
 
   applyColorToShape(colorIndex) {
     if (this.selectedShape) {
-      const { compositeIndex, shapeType } = this.selectedShape;
+      const { compositeIndex, shapeType, nestedShapeIndex } = this.selectedShape;
 
-      if (!this.userColors[compositeIndex]) {
-        this.userColors[compositeIndex] = { outer: null, inner: null };
-      }
+      if (nestedShapeIndex === -1)
+        this.userColors[compositeIndex].colorsSequence[0] = colorIndex;
+      else
+        this.userColors[compositeIndex].colorsSequence[nestedShapeIndex] = colorIndex;
 
-      this.userColors[compositeIndex][shapeType] = colorIndex;
       this.clearSelection();
     }
   }
 
   areAllShapesColored() {
-    return this.userColors.every(colors =>
-      colors && colors.outer !== null && colors.inner !== null
+    return this.userColors.every(item => 
+        item.colorsSequence && 
+        item.colorsSequence.length > 0 &&
+        !item.colorsSequence.includes(null)
     );
   }
 
   calculateResult() {
-    const total = this.shapes.length * 2;
+    const total = this.shapes.length * this.levelConfig.shapeSequence.length;
     let correct = 0;
 
     this.shapes.forEach((shape, index) => {
-      const userColors = this.userColors[index];
+      const userColors = this.userColors[index].colorsSequence;
 
       if (userColors) {
-        if (userColors.outer === shape.outerColorIndex) {
-          correct++;
-        }
-
-        if (userColors.inner === shape.innerColorIndex) {
-          correct++;
+        for (let i = 0; i < shape.colorIndexesSequence.length; i++)
+        {
+          if (shape.colorIndexesSequence[i] === userColors[i])
+            correct++;
         }
       }
     });

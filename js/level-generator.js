@@ -37,139 +37,235 @@ export class LevelGenerator {
     const { colorCount, shapeSequence } = levelConfig;
     const shapeCount = 3;
 
-    const colorCombinations = this.generateUniqueColorCombinations(
-      colorCount,
-      shapeCount,
-      100 // Максимум 30 попыток
-    );
+    const shapesInSequenceCount = shapeSequence.flat(1).length;
+    if (shapesInSequenceCount > colorCount) {
+      console.warn(`Количество цветов ${colorCount} недостаточно для генерации ${shapesInSequenceCount} фигур.`);
+      return;
+    }
+
+    if (shapeCount > colorCount) {
+      console.warn(`Количество последовательностей (${shapeCount}) превышает количество доступных цветов (${colorCount}).`);
+      return;
+    }
+
+    const colorCombinations = this.generateUniqueColorCombinations(shapeCount, colorCount, shapesInSequenceCount);
+    if (colorCombinations.count === 0) {
+      console.warn("Генерация цветов не удалась");
+      return;
+    }
 
     const shapes = colorCombinations.map((combo, i) => ({
       id: i,
       type: "composite",
-      outerShape: shapeSequence[0],
-      innerShape: shapeSequence[1],
-      outerColorIndex: combo.outerColorIndex,
-      innerColorIndex: combo.innerColorIndex,
+      shapeSequence: shapeSequence,
+      colorIndexesSequence: combo,
       position: { x: 0, y: 0 },
       size: 0,
-      rotation: Math.random() * Math.PI * 2 // Случайный поворот
     }));
 
     return shapes;
   }
 
-  static generateUniqueColorCombinations(colorCount, shapeCount, maxAttempts = 30) {
-    let attempts = 0;
-
-    while (attempts < maxAttempts) {
-      attempts++;
-
-      try {
-        const outerColors = this.generateUniqueColors(colorCount, shapeCount);
-        const innerColors = this.generateInnerColors(outerColors, colorCount);
-
-        if (this.areColorsUnique(innerColors)) {
-          return outerColors.map((outer, i) => ({
-            outerColorIndex: outer,
-            innerColorIndex: innerColors[i]
-          }));
-        }
-      } catch (e) {
-        continue;
-      }
+  static generateUniqueColorCombinations(shapeCount, colorCount, shapesInSequenceCount) {
+    try {
+      // Пробуем быстрый алгоритм
+      return this.fastGeneration(shapeCount, colorCount, shapesInSequenceCount);
+    } catch (e) {
+      // Если не получилось, используем надежный алгоритм с возвратом
+      console.log('Быстрый алгоритм не сработал, используем перебор с возвратом');
+      return this.backtrackGeneration(shapeCount, colorCount, shapesInSequenceCount);
     }
+    // const allColors = Array.from({ length: colorCount }, (_, i) => i);
 
-    console.warn(`Не удалось сгенерировать уникальные комбинации за ${maxAttempts} попыток. Используем резервный алгоритм.`);
-    return this.generateFallbackColorCombinations(colorCount, shapeCount);
+    // const combinations = [];
+
+    // for (let i = 0; i < shapeCount; i++) {
+    //   const sequence = [];
+    //   for (let j = 0; j < shapesInSequenceCount; j++) {
+    //     let generatedIndex;
+    //     let attempts = 0;
+    //     const maxAttempts = colorCount * 10;
+
+    //     do {
+    //       generatedIndex = this.generateIndex(allColors.length);
+    //       attempts++;
+
+    //       if (attempts >= maxAttempts) {
+    //         break;
+    //       }
+    //     } while (sequence.includes(generatedIndex) || this.anySequenceContainIndex(combinations, j, generatedIndex))
+
+    //     sequence.push(generatedIndex);
+    //   }
+    //   combinations.push(sequence);
+    // }
+
+    // return combinations;
   }
 
-  static generateUniqueColors(colorCount, count) {
-    if (count > colorCount) {
-      throw new Error(`Невозможно сгенерировать ${count} уникальных цветов из ${colorCount} доступных`);
-    }
-
-    const allColors = Array.from({ length: colorCount }, (_, i) => i);
-    this.shuffleArray(allColors);
-
-    return allColors.slice(0, count);
-  }
-
-  static generateInnerColors(outerColors, colorCount) {
-    const innerColors = [];
-    const usedInnerColors = new Set();
-
-    outerColors.forEach(outerColor => {
-      const candidates = [];
-      for (let color = 0; color < colorCount; color++) {
-        if (color !== outerColor && !usedInnerColors.has(color)) {
-          candidates.push(color);
-        }
-      }
-
-      if (candidates.length > 0) {
-        this.shuffleArray(candidates);
-        const selectedColor = candidates[0];
-        innerColors.push(selectedColor);
-        usedInnerColors.add(selectedColor);
-      } else {
-        throw new Error("Не удалось подобрать уникальный внутренний цвет");
-      }
-    });
-
-    return innerColors;
-  }
-
-  static areColorsUnique(colors) {
-    return new Set(colors).size === colors.length;
-  }
-
-  static generateFallbackColorCombinations(colorCount, shapeCount) {
+  static fastGeneration(shapeCount, colorCount, shapesInSequenceCount) {
     const combinations = [];
-    const outerColors = this.generateUniqueColors(colorCount, shapeCount);
+    const availablePositions = {};
 
-    outerColors.forEach((outerColor, i) => {
-      let innerColor;
-      const forbiddenColors = new Set([outerColor]);
+    // Инициализируем доступные цвета для каждой позиции
+    for (let pos = 0; pos < shapesInSequenceCount; pos++) {
+      availablePositions[pos] = Array.from({ length: colorCount }, (_, i) => i);
+      // Перемешиваем
+      availablePositions[pos].sort(() => Math.random() - 0.5);
+    }
 
-      if (i > 0 && combinations.length < colorCount - 1) {
-        combinations.forEach(combo => forbiddenColors.add(combo.innerColorIndex));
-      }
+    for (let shape = 0; shape < shapeCount; shape++) {
+      const sequence = [];
+      const usedColors = new Set();
 
-      for (let color = 0; color < colorCount; color++) {
-        if (!forbiddenColors.has(color)) {
-          innerColor = color;
-          break;
+      for (let pos = 0; pos < shapesInSequenceCount; pos++) {
+        let found = false;
+
+        for (let i = 0; i < availablePositions[pos].length; i++) {
+          const color = availablePositions[pos][i];
+
+          if (!usedColors.has(color)) {
+            // Проверяем, не используется ли этот цвет на этой позиции в других последовательностях
+            let conflict = false;
+            for (const existing of combinations) {
+              if (existing[pos] === color) {
+                conflict = true;
+                break;
+              }
+            }
+
+            if (!conflict) {
+              sequence.push(color);
+              usedColors.add(color);
+              availablePositions[pos].splice(i, 1);
+              found = true;
+              break;
+            }
+          }
+        }
+
+        if (!found) {
+          throw new Error('Не удалось найти подходящий цвет');
         }
       }
 
-      if (innerColor === undefined) {
-        innerColor = (outerColor + 1) % colorCount;
-      }
-
-      combinations.push({
-        outerColorIndex: outerColor,
-        innerColorIndex: innerColor
-      });
-    });
+      combinations.push(sequence);
+    }
 
     return combinations;
   }
 
-  static shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
+  static backtrackGeneration(shapeCount, colorCount, shapesInSequenceCount) {
+    // Проверки остаются те же
+
+    const allColors = Array.from({ length: colorCount }, (_, i) => i);
+
+    // Рекурсивная функция с возвратом
+    function backtrack(currentShapeIndex, currentCombinations) {
+      // Если заполнили все последовательности - успех
+      if (currentShapeIndex === shapeCount) {
+        return [...currentCombinations.map(seq => [...seq])];
+      }
+
+      // Генерируем все возможные последовательности для текущей формы
+      const possibleSequences = generatePossibleSequences(
+        allColors,
+        shapesInSequenceCount,
+        currentCombinations
+      );
+
+      // Перемешиваем для случайности
+      shuffleArray(possibleSequences);
+
+      for (const sequence of possibleSequences) {
+        currentCombinations.push(sequence);
+
+        const result = backtrack(currentShapeIndex + 1, currentCombinations);
+        if (result) {
+          return result;
+        }
+
+        // Возврат - убираем последнюю последовательность
+        currentCombinations.pop();
+      }
+
+      return null;
     }
+
+    function generatePossibleSequences(colors, length, existingCombinations) {
+      const result = [];
+
+      // Генерируем все перестановки цветов нужной длины
+      function generatePermutations(current, usedColors) {
+        if (current.length === length) {
+          // Проверяем, подходит ли последовательность
+          if (isSequenceValid(current, existingCombinations)) {
+            result.push([...current]);
+          }
+          return;
+        }
+
+        for (const color of colors) {
+          if (!usedColors.has(color)) {
+            current.push(color);
+            usedColors.add(color);
+            generatePermutations(current, usedColors);
+            current.pop();
+            usedColors.delete(color);
+          }
+        }
+      }
+
+      generatePermutations([], new Set());
+      return result;
+    }
+
+    function isSequenceValid(sequence, existingCombinations) {
+      // Проверяем каждую позицию
+      for (let pos = 0; pos < sequence.length; pos++) {
+        const color = sequence[pos];
+        // Проверяем, есть ли этот цвет на этой позиции в других последовательностях
+        for (const existing of existingCombinations) {
+          if (existing[pos] === color) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    const result = backtrack(0, []);
+    return result || [];
   }
 
-  static calculateLayout(shapes, availableArea, hasSidePanel = false) {
+  static generateIndex(maxValue) {
+    return Math.floor(Math.random() * maxValue);
+  }
+
+  static anySequenceContainIndex(sequence, currentIndex, generatedIndex) {
+    for (const element of sequence) {
+      if (element[currentIndex] == generatedIndex)
+        return true;
+    }
+
+    return false;
+  }
+
+  static calculateLayout(shapes, availableArea) {
     const shapeCount = shapes.length;
 
     // Минимальный размер фигур
-    const minShapeSize = 150;
+    const minShapeSize = 220;
     const shapeSpacing = 80;
 
-    const effectiveWidth = hasSidePanel ? availableArea.width * 0.6 : availableArea.width;
+    const effectiveWidth = availableArea.width;
 
     const neededWidth = shapeCount * (minShapeSize + shapeSpacing);
     const useHorizontal = effectiveWidth >= neededWidth;

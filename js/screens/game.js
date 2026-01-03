@@ -71,17 +71,17 @@ export class Game extends GameScreen {
     const { shapes, currentPhase, availableColors, userColors, selectedShape } = state;
 
     shapes.forEach((shape, index) => {
-      const isSelected = selectedShape &&
-        selectedShape.compositeIndex === index ?
-        { shapeType: selectedShape.shapeType } : null;
+      const isSelected = selectedShape && selectedShape.compositeIndex === index ? { shapeType: selectedShape.shapeType } : null;
+      const selectedNestedShapeIndex = selectedShape?.nestedShapeIndex;
 
       ShapeRenderer.drawCompositeShape(
         this.ctx,
         shape,
         currentPhase,
         availableColors,
-        userColors[index],
-        isSelected
+        userColors[index].colorsSequence,
+        isSelected,
+        selectedNestedShapeIndex
       );
     });
   }
