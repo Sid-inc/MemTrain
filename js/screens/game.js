@@ -28,7 +28,7 @@ export class Game extends GameScreen {
 
   init() {
     this.timer = new Timer(this.ctx, "секунд");
-    this.colorPalette = new ColorPalette(this.ctx, "🎨 Выберите цвет");
+    this.colorPalette = new ColorPalette(this.ctx);
     this.instruction = new Instruction(this.ctx);
     this.resultPanel = new ResultPanel(this.ctx)
 

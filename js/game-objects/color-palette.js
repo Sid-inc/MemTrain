@@ -1,7 +1,6 @@
 export class ColorPalette {
-  constructor(ctx, text) {
+  constructor(ctx) {
     this.ctx = ctx;
-    this.text = text;
     this.colorPalettePosition = null;
     this.currentColorCount = 0;
     this.buttonSize = 60;
@@ -28,9 +27,10 @@ export class ColorPalette {
     const colorsCount = state.availableColors.length;
 
     // 1. ТОЧНЫЙ РАСЧЕТ РАЗМЕРОВ ПАЛИТРЫ
-    const paletteWidth = this.buttonSize * 2 + spacing + 100; // Ширина фона (кнопки + отступы)
-    const rows = Math.ceil(colorsCount / 2);
-    const paletteHeight = (rows * (this.buttonSize + spacing)) + 100; // Высота: кнопки + заголовок + отступы
+    const columns = Math.ceil(colorsCount / 4);
+    const paletteWidth = spacing + this.buttonSize * columns + spacing * columns; // Ширина фона (кнопки + отступы)
+    const rows = colorsCount >= 4 ? 4 : colorsCount;
+    const paletteHeight = (rows * (this.buttonSize + spacing)) + spacing; // Высота: кнопки + заголовок + отступы
 
     // 2. БАЗОВАЯ ПОЗИЦИЯ (справа от фигуры)
     let paletteX = selectedShape.position.x + selectedShape.size / 2 + 30;
@@ -110,18 +110,12 @@ export class ColorPalette {
     ctx.stroke();
     ctx.shadowColor = "transparent";
 
-    // Заголовок
-    ctx.fillStyle = "#4a6fa5";
-    ctx.font = 'bold 24px "Comic Sans MS"';
-    ctx.textAlign = "center";
-    ctx.fillText(this.text, startX + 47 + buttonSize + spacing / 2, startY + 30);
-
     // Кнопки цветов
     colors.forEach((color, index) => {
-      const row = Math.floor(index / 2);
-      const col = index % 2;
-      const x = startX + 20 + col * (buttonSize + spacing);
-      const y = startY + 60 + row * (buttonSize + spacing);
+      const row = index % 4;
+      const col = Math.floor(index / 4);
+      const x = startX + spacing + col * (buttonSize + spacing);
+      const y = startY + spacing + row * (buttonSize + spacing);
 
       // Фон кнопки с градиентом
       const buttonGradient = ctx.createRadialGradient(
@@ -178,14 +172,14 @@ export class ColorPalette {
 
     const { x: paletteX, y: paletteY, spacing } = this.colorPalettePosition;
 
-    const colorsPerRow = 2;
+    const colorsPerRow = 4;
     const maxColors = this.currentColorCount || 0;
 
     for (let i = 0; i < maxColors; i++) {
-      const row = Math.floor(i / colorsPerRow);
-      const col = i % colorsPerRow;
-      const buttonX = paletteX + 20 + col * (this.buttonSize + spacing);
-      const buttonY = paletteY + 60 + row * (this.buttonSize + spacing);
+      const row = i % colorsPerRow;
+      const col = Math.floor(i / colorsPerRow);
+      const buttonX = paletteX + spacing + col * (this.buttonSize + spacing);
+      const buttonY = paletteY + spacing + row * (this.buttonSize + spacing);
 
       const distance = Math.sqrt(
         Math.pow(x - (buttonX + this.buttonSize / 2), 2) +
