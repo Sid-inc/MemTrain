@@ -106,7 +106,7 @@ export class LevelsList extends GameScreen {
 
   createBackButton() {
     const buttonWidth = Math.max(320, GameConfig.WIDTH / 6);
-    const buttonHeight = Math.max(60, GameConfig.WIDTH / 18);
+    const buttonHeight = Math.max(60, GameConfig.HEIGHT / 18);
     const startX = (GameConfig.WIDTH - buttonWidth) / 2;
 
     const lastLevelButton = this.levelButtons[this.levelButtons.length - 1]

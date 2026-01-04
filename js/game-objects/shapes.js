@@ -59,9 +59,11 @@ export class ShapeRenderer {
       case ShapeTypes.TRIANGLE:
         this.drawTriangle(ctx, shapeSettings);
         break;
-      case ShapeTypes.RECTANGLE:
-        break;
       case ShapeTypes.SQUARE:
+        this.drawSquare(ctx, shapeSettings);
+        break;
+      case ShapeTypes.RECTANGLE:
+        this.drawRectangle(ctx, shapeSettings);
         break;
     }
   }
@@ -174,6 +176,127 @@ export class ShapeRenderer {
     }
   }
 
+  static drawSquare(ctx, shapeSettings) {
+    const { phase, availableColors, userColor, isSelected, nestedShapeColorIndex, radius, radiusValue, position } = shapeSettings;
+    const innerRadius = radius * radiusValue;
+
+    // Создаем квадрат (повернутый на 45 градусов для единообразия с треугольником)
+    ctx.beginPath();
+    for (let i = 0; i < 4; i++) {
+      const angle = (i * 2 * Math.PI / 4) - Math.PI / 4; // -45° чтобы квадрат стоял на угле
+      const x = position.x + innerRadius * Math.cos(angle);
+      const y = position.y + innerRadius * Math.sin(angle);
+
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+    ctx.closePath();
+
+    // Тень для квадрата
+    ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 3;
+    ctx.shadowOffsetY = 3;
+
+    if (phase === GameState.GamePhases.SHOWING) {
+      const innerColor = availableColors[nestedShapeColorIndex];
+      this.drawShinySquare(ctx, position, innerRadius, innerColor);
+    } else if (phase === GameState.GamePhases.RECALL) {
+      if (userColor !== null) {
+        const color = availableColors[userColor];
+        this.drawShinySquare(ctx, position, innerRadius, color);
+      } else {
+        this.drawShinySquare(ctx, position, innerRadius, "#AAAAAA", false);
+      }
+    }
+
+    // Сбрасываем тень
+    ctx.shadowColor = "transparent";
+
+    // Если квадрат выбран, рисуем подсветку
+    if (isSelected) {
+      ctx.beginPath();
+      const highlightRadius = innerRadius + 8;
+      for (let i = 0; i < 4; i++) {
+        const angle = (i * 2 * Math.PI / 4) - Math.PI / 4;
+        const x = position.x + highlightRadius * Math.cos(angle);
+        const y = position.y + highlightRadius * Math.sin(angle);
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.closePath();
+      ctx.strokeStyle = "#FFD700";
+      ctx.lineWidth = 4;
+      ctx.shadowColor = "#FFD700";
+      ctx.shadowBlur = 15;
+      ctx.stroke();
+      ctx.shadowColor = "transparent";
+    }
+  }
+
+  static drawRectangle(ctx, shapeSettings) {
+    const { phase, availableColors, userColor, isSelected, nestedShapeColorIndex, radius, radiusValue, position } = shapeSettings;
+    const innerRadius = radius * radiusValue;
+
+    const width = innerRadius * 1.4;
+    const height = innerRadius;
+
+    // Создаем прямоугольник
+    ctx.beginPath();
+    // Верхний левый -> верхний правый -> нижний правый -> нижний левый
+    ctx.moveTo(position.x - width / 2, position.y - height / 2);
+    ctx.lineTo(position.x + width / 2, position.y - height / 2);
+    ctx.lineTo(position.x + width / 2, position.y + height / 2);
+    ctx.lineTo(position.x - width / 2, position.y + height / 2);
+    ctx.closePath();
+
+    // Тень для прямоугольника
+    ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 3;
+    ctx.shadowOffsetY = 3;
+
+    if (phase === GameState.GamePhases.SHOWING) {
+      const innerColor = availableColors[nestedShapeColorIndex];
+      this.drawShinyRectangle(ctx, position, width, height, innerColor);
+    } else if (phase === GameState.GamePhases.RECALL) {
+      if (userColor !== null) {
+        const color = availableColors[userColor];
+        this.drawShinyRectangle(ctx, position, width, height, color);
+      } else {
+        this.drawShinyRectangle(ctx, position, width, height, "#AAAAAA", false);
+      }
+    }
+
+    // Сбрасываем тень
+    ctx.shadowColor = "transparent";
+
+    // Если прямоугольник выбран, рисуем подсветку
+    if (isSelected) {
+      ctx.beginPath();
+      const highlightWidth = width + 12;
+      const highlightHeight = height + 8;
+      ctx.moveTo(position.x - highlightWidth / 2, position.y - highlightHeight / 2);
+      ctx.lineTo(position.x + highlightWidth / 2, position.y - highlightHeight / 2);
+      ctx.lineTo(position.x + highlightWidth / 2, position.y + highlightHeight / 2);
+      ctx.lineTo(position.x - highlightWidth / 2, position.y + highlightHeight / 2);
+      ctx.closePath();
+      ctx.strokeStyle = "#FFD700";
+      ctx.lineWidth = 4;
+      ctx.shadowColor = "#FFD700";
+      ctx.shadowBlur = 15;
+      ctx.stroke();
+      ctx.shadowColor = "transparent";
+    }
+  }
+
   static drawShinyCircle(ctx, position, radius, color, shiny = true) {
     const gradient = ctx.createRadialGradient(
       position.x - radius * 0.3,
@@ -254,6 +377,107 @@ export class ShapeRenderer {
           ctx.lineTo(x, y);
         }
       }
+      ctx.closePath();
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.fill();
+    }
+  }
+
+  static drawShinySquare(ctx, position, radius, color, shiny = true) {
+    // Градиент для квадрата (вертикальный, как у треугольника)
+    const gradient = ctx.createLinearGradient(
+      position.x,
+      position.y - radius,
+      position.x,
+      position.y + radius
+    );
+
+    if (shiny) {
+      gradient.addColorStop(0, "#FFFFFF");
+      gradient.addColorStop(0.1, color);
+      gradient.addColorStop(0.8, this.darkenColor(color, 20));
+    } else {
+      gradient.addColorStop(0, this.lightenColor(color, 20));
+      gradient.addColorStop(1, color);
+    }
+
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // Обводка квадрата
+    ctx.strokeStyle = this.darkenColor(color, 40);
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Блик на квадрате
+    if (shiny) {
+      ctx.beginPath();
+      // Маленький квадрат для блика
+      const highlightRadius = radius * 0.4;
+      for (let i = 0; i < 4; i++) {
+        const angle = (i * 2 * Math.PI / 4) - Math.PI / 4;
+        const x = position.x + highlightRadius * Math.cos(angle) * 0.6;
+        const y = position.y + highlightRadius * Math.sin(angle) * 0.6 - radius * 0.15;
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.closePath();
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.fill();
+    }
+  }
+
+  static drawShinyRectangle(ctx, position, width, height, color, shiny = true) {
+    // Градиент для прямоугольника (вертикальный)
+    const gradient = ctx.createLinearGradient(
+      position.x,
+      position.y - height / 2,
+      position.x,
+      position.y + height / 2
+    );
+
+    if (shiny) {
+      gradient.addColorStop(0, "#FFFFFF");
+      gradient.addColorStop(0.1, color);
+      gradient.addColorStop(0.8, this.darkenColor(color, 20));
+    } else {
+      gradient.addColorStop(0, this.lightenColor(color, 20));
+      gradient.addColorStop(1, color);
+    }
+
+    ctx.fillStyle = gradient;
+
+    // Рисуем прямоугольник
+    ctx.beginPath();
+    ctx.moveTo(position.x - width / 2, position.y - height / 2);
+    ctx.lineTo(position.x + width / 2, position.y - height / 2);
+    ctx.lineTo(position.x + width / 2, position.y + height / 2);
+    ctx.lineTo(position.x - width / 2, position.y + height / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Обводка прямоугольника
+    ctx.strokeStyle = this.darkenColor(color, 40);
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Блик на прямоугольнике
+    if (shiny) {
+      ctx.beginPath();
+      // Маленький прямоугольник для блика (40% от размера)
+      const highlightWidth = width * 0.4;
+      const highlightHeight = height * 0.4;
+      const highlightX = position.x - highlightWidth / 2;
+      const highlightY = position.y - height / 2 * 0.7; // Смещаем вверх
+
+      ctx.moveTo(highlightX, highlightY);
+      ctx.lineTo(highlightX + highlightWidth, highlightY);
+      ctx.lineTo(highlightX + highlightWidth, highlightY + highlightHeight);
+      ctx.lineTo(highlightX, highlightY + highlightHeight);
       ctx.closePath();
       ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
       ctx.fill();
