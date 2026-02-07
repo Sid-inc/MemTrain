@@ -57,21 +57,20 @@ export class GameEngine {
     }
   }
 
-  isPointInSphere(x, y, shape) {
+  isPointInSphere(x, y, shape, radiusValue) {
     const distanceToCenter = Math.sqrt(
       Math.pow(x - shape.position.x, 2) + Math.pow(y - shape.position.y, 2)
     );
 
-    // Проверяем клик по кругу
-    if (distanceToCenter <= (shape.size / 2) * 0.7) {
-      return true;
-    }
-    return false;
+    // Используем радиус с учетом масштаба
+    const actualRadius = (shape.size / 2) * radiusValue;
+
+    return distanceToCenter <= actualRadius;
   }
 
-  isPointInTriangle(x, y, shape) {
+  isPointInTriangle(x, y, shape, radiusValue) {
     const { position, size } = shape;
-    const radius = size / 2 * 0.7;
+    const radius = (size / 2) * radiusValue; // Учитываем масштаб
 
     const vertices = [];
     for (let i = 0; i < 3; i++) {
@@ -82,28 +81,14 @@ export class GameEngine {
       });
     }
 
-    const v0 = { x: vertices[2].x - vertices[0].x, y: vertices[2].y - vertices[0].y };
-    const v1 = { x: vertices[1].x - vertices[0].x, y: vertices[1].y - vertices[0].y };
-    const v2 = { x: x - vertices[0].x, y: y - vertices[0].y };
-
-    const dot00 = v0.x * v0.x + v0.y * v0.y;
-    const dot01 = v0.x * v1.x + v0.y * v1.y;
-    const dot02 = v0.x * v2.x + v0.y * v2.y;
-    const dot11 = v1.x * v1.x + v1.y * v1.y;
-    const dot12 = v1.x * v2.x + v1.y * v2.y;
-
-    const invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-    const u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-    const v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-    return (u >= 0) && (v >= 0) && (u + v < 1);
+    return this.isPointInTriangleByVertices(x, y, vertices[0], vertices[1], vertices[2]);
   }
 
-  isPointInSquare(x, y, shape) {
+  isPointInSquare(x, y, shape, radiusValue) {
     const { position, size } = shape;
-    const radius = size / 2 * 0.7;
+    const radius = (size / 2) * radiusValue; // Учитываем масштаб
 
-    // Вычисляем 4 вершины квадрата, повернутого на 45 градусов (как в drawSquare)
+    // Вычисляем 4 вершины квадрата, повернутого на 45 градусов
     const vertices = [];
     for (let i = 0; i < 4; i++) {
       const angle = (i * 2 * Math.PI / 4) - Math.PI / 4;
@@ -113,26 +98,23 @@ export class GameEngine {
       });
     }
 
-    // Проверяем, находится ли точка внутри квадрата, используя алгоритм закраски
-    // Разбиваем квадрат на 2 треугольника и проверяем каждый
+    // Проверяем, находится ли точка внутри квадрата
     return this.isPointInTriangleByVertices(x, y, vertices[0], vertices[1], vertices[2]) ||
       this.isPointInTriangleByVertices(x, y, vertices[0], vertices[2], vertices[3]);
   }
 
-  isPointInRectangle(x, y, shape) {
+  isPointInRectangle(x, y, shape, radiusValue) {
     const { position, size } = shape;
-    const radius = size / 2 * 0.7;
+    const radius = (size / 2) * radiusValue; // Учитываем масштаб
 
-    // Для прямоугольника 6:4 (ширина:высота)
-    const width = radius * 1.4;  // Большая сторона (6 частей)
-    const height = radius; // Маленькая сторона (4 части)
+    const width = radius * 1.4;
+    const height = radius;
 
     // Проверяем, находится ли точка внутри прямоугольника (без поворота)
     return (x >= position.x - width / 2 && x <= position.x + width / 2 &&
       y >= position.y - height / 2 && y <= position.y + height / 2);
   }
 
-  // Вспомогательный метод для проверки точки в треугольнике по вершинам
   isPointInTriangleByVertices(x, y, v0, v1, v2) {
     const vec0 = { x: v2.x - v0.x, y: v2.y - v0.y };
     const vec1 = { x: v1.x - v0.x, y: v1.y - v0.y };
@@ -202,36 +184,41 @@ export class GameEngine {
   }
 
   findDeepestNestedShape(x, y, shape) {
-    for (let i = 0; i < shape.shapeSequence.length; i++) {
-      const shapeType = shape.shapeSequence[i];
+    const { shapeSequence } = shape;
+    let deepestIndex = -1;
 
-      if (!this.isPointInShape(x, y, shape, shapeType)) {
-        return -1; // Прерываем, если не попали в текущую фигуру
-      }
+    for (let i = 0; i < shapeSequence.length; i++) {
+      const shapeType = shapeSequence[i];
+      const radiusValue = this.calculateRadiusValue(i);
 
-      // Если это последняя фигура в цепочке
-      if (i === shape.shapeSequence.length - 1) {
-        return i;
+      if (this.isPointInShape(x, y, shape, shapeType, radiusValue)) {
+        deepestIndex = i;
+      } else {
+        break;
       }
     }
-    return -1;
+
+    return deepestIndex;
   }
 
-  isPointInShape(x, y, shape, shapeType) {
+  isPointInShape(x, y, shape, shapeType, radiusValue) {
     const shapeCheckers = {
-      [ShapeTypes.SPHERE]: () => this.isPointInSphere(x, y, shape),
-      [ShapeTypes.TRIANGLE]: () => this.isPointInTriangle(x, y, shape),
-      [ShapeTypes.RECTANGLE]: () => this.isPointInRectangle(x, y, shape),
-      [ShapeTypes.SQUARE]: () => this.isPointInSquare(x, y, shape),
+      [ShapeTypes.SPHERE]: (rv) => this.isPointInSphere(x, y, shape, rv),
+      [ShapeTypes.TRIANGLE]: (rv) => this.isPointInTriangle(x, y, shape, rv),
+      [ShapeTypes.RECTANGLE]: (rv) => this.isPointInRectangle(x, y, shape, rv),
+      [ShapeTypes.SQUARE]: (rv) => this.isPointInSquare(x, y, shape, rv),
     };
 
     const checker = shapeCheckers[shapeType];
-    return checker ? checker() : false;
+    return checker ? checker(radiusValue) : false;
+  }
+
+  calculateRadiusValue(index, decreasePercentage = 0.3) {
+    return Math.pow(1 - decreasePercentage, index);
   }
 
   handleInnerShapeClick(shapeIndex, shape, nestedShapeIndex) {
     this.gameState.selectShape(shapeIndex, "inner", nestedShapeIndex);
-    console.log("inner click");
     return {
       type: "SHAPE_SELECTED",
       compositeIndex: shapeIndex,

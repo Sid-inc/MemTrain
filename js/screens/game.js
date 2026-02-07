@@ -30,7 +30,7 @@ export class Game extends GameScreen {
     this.timer = new Timer(this.ctx, "секунд");
     this.colorPalette = new ColorPalette(this.ctx);
     this.instruction = new Instruction(this.ctx);
-    this.resultPanel = new ResultPanel(this.ctx)
+    this.resultPanel = new ResultPanel(this.ctx);
 
     this.gameManager.colorPalette = this.colorPalette;
     this.gameManager.resultPanel = this.resultPanel;
