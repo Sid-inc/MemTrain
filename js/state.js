@@ -4,19 +4,26 @@ import { GameManager } from "./game-manager.js";
 import { UserStorage } from "./user-data/user-storage.js";
 import { Levels } from "./config.js";
 import { LevelsList } from "./screens/levels-list.js";
+import { RewardManager } from "./reward-manager.js";
+import { Loading } from "./screens/loading.js";
+import { Reward } from "./screens/reward.js";
+import { Galary } from "./screens/galary.js";
 
 export class State {
   constructor(ctx) {
     this.ctx = ctx;
-    this.UIState = State.UIStates.MENU;
-    this.activeScreen = new Menu(this.ctx, this);
+    this.UIState = State.UIStates.LOADING;
+    this.rewardManager = new RewardManager();
+    this.activeScreen = new Loading(this.ctx, this, this.rewardManager);
   }
 
   static UIStates = {
+    LOADING: "LOADING",
     MENU: "MENU",
     LEVELS: "LEVELS",
     GALARY: "GALARY",
-    GAME: "GAME"
+    GAME: "GAME",
+    REWARD: "REWARD"
   };
 
   static GradeLevels = {
@@ -32,18 +39,25 @@ export class State {
       this.UIState = newState;
 
       switch (this.UIState) {
+        case State.UIStates.LOADING:
+          this.activeScreen = new Loading(this.ctx, this, this.rewardManager);
+          break;
         case State.UIStates.MENU:
           this.activeScreen = new Menu(this.ctx, this);
           break;
         case State.UIStates.GAME:
           var id = levelId ?? this.getRelevantLevelId();
-          const gameManager = new GameManager(id);
+          const gameManager = new GameManager(id, this.rewardManager);
           this.activeScreen = new Game(this.ctx, this, gameManager);
           break;
         case State.UIStates.LEVELS:
           this.activeScreen = new LevelsList(this.ctx, this);
           break;
+        case State.UIStates.REWARD:
+          this.activeScreen = new Reward(this.ctx, this, this.rewardManager.geavingReward);
+          break;
         case State.UIStates.GALARY:
+          this.activeScreen = new Galary(this.ctx, this);
           break;
       }
 

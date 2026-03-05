@@ -216,7 +216,7 @@ export class ResultPanel {
     };
   }
 
-    isReturnButtonClicked(x, y) {
+  isReturnButtonClicked(x, y) {
     if (!this.returnButtonRect) return false;
 
     return x >= this.returnButtonRect.x &&

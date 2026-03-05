@@ -4,7 +4,8 @@ import { UserStorage } from "./user-data/user-storage.js";
 import { Levels, GameConfig } from "./config.js";
 
 export class GameManager {
-  constructor(levelId) {
+  constructor(levelId, rewardManager) {
+    this.rewardManager = rewardManager;
     this.engine = null;
     this.gameLoopId = null;
     this.gameState = null;
@@ -33,8 +34,50 @@ export class GameManager {
       console.log("Результат уровня:", result);
       UserStorage.saveLevelResult(levelId, result);
       UserStorage.updateStats(result);
+
+          //TODO: сделать после showLevelResults
+      if (result.percentage === 100 && 
+          !this.rewardManager.hasUnlockedRewardForLevel(levelConfig.id)) {
+        
+        const reward = this.rewardManager.getRandomUnlockedReward(levelConfig.id);
+        
+        if (reward) {
+          this.rewardManager.unlockReward(reward.id, levelConfig.id);
+          
+          // Вызываем callback для показа награды
+          // if (this.onReward) {
+          //   this.onReward({
+          //     reward,
+          //     result,
+          //     continueToResults: () => this.showLevelResults(result)
+          //   });
+          // }
+          this.rewardManager.setReward({reward, result});
+        }
+      }
     };
+
+    // this.engine.onReward = (rewardData) => {
+    //   this.rewardManager.setReward(rewardData);
+    //   // this.showRewardScreen(rewardData);
+    // };
   }
+
+  // showRewardScreen(rewardData) {
+  //   // Показывает экран с наградой
+  //   // rewardData содержит: reward, result, continueToResults callback
+  //   const rewardUI = new RewardScreen({
+  //     reward: rewardData.reward,
+  //     result: rewardData.result,
+  //     onContinue: () => {
+  //       // При нажатии "Продолжить" показываем обычные результаты
+  //       rewardData.continueToResults();
+  //       rewardUI.hide();
+  //     }
+  //   });
+    
+  //   rewardUI.show();
+  // }
 
   update()
   {
@@ -42,7 +85,6 @@ export class GameManager {
   }
 
   handleGameClick(x, y) {
-    console.log(`handled click x:${x} y:${y}`);
     if (!this.engine) return null;
     
     // Проверяем клик по палитре цветов
@@ -62,8 +104,9 @@ export class GameManager {
     
     // Проверяем клик по кнопке возврата
     if (this.resultPanel.isReturnButtonClicked(x, y)) {
-      this.returnToMenu();
-      return { type: "RETURN_TO_MENU" };
+      this.resetEngine();
+      const nextStep = this.rewardManager.needToGiaveReward ? "GIVE_REWARD" : "RETURN_TO_MENU"
+      return { type: nextStep };
     }
     
     if (this.gameState.selectedShape)
@@ -72,7 +115,7 @@ export class GameManager {
     return null;
   }
 
-  returnToMenu() {
+  resetEngine() {
     if (this.engine) {
       this.engine.reset();
     }

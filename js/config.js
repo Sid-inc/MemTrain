@@ -44,7 +44,7 @@ export const Levels = [
     order: 4,
     difficulty: 1,
     shapeSequence: [ShapeTypes.SPHERE, ShapeTypes.RECTANGLE],
-    colorCount: 4,
+    colorCount: 3,
     timeSeconds: 15,
   },
   {
@@ -136,3 +136,26 @@ export const Levels = [
     timeSeconds: 7,
   }
 ];
+
+export const RewardsConfig = {
+  totalRewardsCount: 17,
+  rewards: [
+    { id: 1, imagePath: 'images/1770465822.png', name: 'Кот 1' },
+    { id: 2, imagePath: 'images/1770465914.png', name: 'Кот 2' },
+    { id: 3, imagePath: 'images/1770465950.png', name: 'Кот 3' },
+    { id: 4, imagePath: 'images/1770466040.png', name: 'Кот 4' },
+    { id: 5, imagePath: 'images/1770469448.png', name: 'Кот 5' },
+    { id: 6, imagePath: 'images/1770469490.png', name: 'Кот 6' },
+    { id: 7, imagePath: 'images/1770469560.png', name: 'Кот 7' },
+    { id: 8, imagePath: 'images/1770469587.png', name: 'Кот 8' },
+    { id: 9, imagePath: 'images/1770470644.png', name: 'Кот 9' },
+    { id: 10, imagePath: 'images/1770470915.png', name: 'Кот 10' },
+    { id: 11, imagePath: 'images/1770551280.png', name: 'Кот 11' },
+    { id: 12, imagePath: 'images/1770552566.png', name: 'Собака 1' },
+    { id: 13, imagePath: 'images/1770553680.png', name: 'Собака 2' },
+    { id: 14, imagePath: 'images/1770553728.png', name: 'Собака 3' },
+    { id: 15, imagePath: 'images/1770554080.png', name: 'Собака 4' },
+    { id: 16, imagePath: 'images/1770554219.png', name: 'Собака 5' },
+    { id: 17, imagePath: 'images/1770554450.png', name: 'Собака 6' },
+  ]
+};

@@ -113,7 +113,12 @@ export class Game extends GameScreen {
 
   handleMouseClick(x, y) {
     const result = this.gameManager.handleGameClick(x, y);
-    if (result && result.type === "RETURN_TO_MENU")
-      this.state.setState(State.UIStates.MENU);
+    if(result)
+    {
+      if (result.type === "RETURN_TO_MENU")
+        this.state.setState(State.UIStates.MENU);
+      if (result.type === "GIVE_REWARD")
+        this.state.setState(State.UIStates.REWARD);
+    }
   }
 }

@@ -41,13 +41,18 @@ export class Button {
     this.sparkles = options.sparkles !== false; // Блестки по умолчанию включены
     this.showStars = options.showStars || false;
     this.starsGrade = options.starsGrade || 0;
+    this.disabled = options.disabled || false;
+    this.bgImage = options.bgImage;
 
-    // Блестки - фиксированные позиции и состояние
-    this.sparkleData = [];
-    this.initSparkles();
+    if (!this.disabled) {
+      // Блестки - фиксированные позиции и состояние
+      this.sparkleData = [];
+      this.initSparkles();
 
-    // Callback
-    this.onClick = options.onClick || (() => { });
+      // Callback
+      this.onClick = options.onClick || (() => { });
+    }
+
   }
 
   containsPoint(x, y) {
@@ -75,6 +80,9 @@ export class Button {
   }
 
   update(index, time, x, y, width, height) {
+    if (this.disabled)
+      return;
+
     // Пульсация кнопки
     this.pulse = Math.sin(time * 0.002) * 0.05;
     this.x = x;
@@ -174,35 +182,44 @@ export class Button {
       this.drawSparkles(ctx, this.x, this.y + pressOffset, this.width, this.height);
     }
 
-    // Текст с контуром
-    ctx.fillStyle = this.textColor;
-    ctx.font = this.font;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    if (!this.bgImage) {
+      // Текст с контуром
+      ctx.fillStyle = this.textColor;
+      ctx.font = this.font;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
 
-    // Контур текста
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
-    ctx.lineWidth = 3;
-    ctx.strokeText(
-      this.text,
-      this.x + this.width / 2,
-      this.y + this.height / 2 + pressOffset
-    );
+      // Контур текста
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
+      ctx.lineWidth = 3;
+      ctx.strokeText(
+        this.text,
+        this.x + this.width / 2,
+        this.y + this.height / 2 + pressOffset
+      );
 
-    // Основной текст
-    ctx.fillText(
-      this.text,
-      this.x + this.width / 2,
-      this.y + this.height / 2 + pressOffset
-    );
+      // Основной текст
+      ctx.fillText(
+        this.text,
+        this.x + this.width / 2,
+        this.y + this.height / 2 + pressOffset
+      );
 
-    // Маленькая тень под текстом для объемности
-    ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
-    ctx.fillText(
-      this.text,
-      this.x + this.width / 2 + 2,
-      this.y + this.height / 2 + pressOffset + 2
-    );
+      // Маленькая тень под текстом для объемности
+      ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+      ctx.fillText(
+        this.text,
+        this.x + this.width / 2 + 2,
+        this.y + this.height / 2 + pressOffset + 2
+      );
+    } else {
+      ctx.beginPath();
+      this.roundRect(ctx, this.x, this.y + pressOffset, this.width, this.height, actualRadius);
+      ctx.clip(); // Устанавливаем обтравочный контур
+
+      // Рисуем изображение, масштабируя его точно под размер кнопки
+      ctx.drawImage(this.bgImage, this.x, this.y + pressOffset, this.width, this.height);
+    }
 
     ctx.restore();
 
@@ -245,6 +262,9 @@ export class Button {
 
   // Рисуем блестки с плавным мерцанием
   drawSparkles(ctx, x, y, width, height) {
+    if (this.disabled)
+      return;
+
     ctx.save();
 
     this.sparkleData.forEach(sparkle => {
@@ -281,11 +301,10 @@ export class Button {
     ctx.restore();
   }
 
-  renderStars(ctx)
-  {
+  renderStars(ctx) {
     this.stars = new Stars(ctx);
 
-    const centerX = this.x + this.width / 2; 
+    const centerX = this.x + this.width / 2;
     const y = this.y + this.height - 20;
     this.stars.render(centerX, y, this.starsGrade, 30);
   }

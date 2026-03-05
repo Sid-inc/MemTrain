@@ -1,105 +1,93 @@
-import { Levels } from "../config.js";
 import { GameScreen } from "../base/game-screen.js";
 import { GameConfig } from "../config.js";
-import { UserStorage } from "../user-data/user-storage.js";
 import { Button } from "../ui-components/button.js";
+import { Levels } from "../config.js";
 import { Title } from "../ui-components/title.js";
 import { State } from "../state.js";
+import { Modal } from "../ui-components/modal.js";
 
-export class LevelsList extends GameScreen {
+export class Galary extends GameScreen {
   constructor(ctx, state) {
     super(ctx, state);
     this.buttons = [];
     this.title = null;
-    this.levelButtons = [];
+    this.rewardButtons = [];
+    this.unlockedRewards = [];
     this.init();
   }
 
   init() {
+    if (this.state.rewardManager) 
+      this.unlockedRewards = this.state.rewardManager.getAllUnlockedRewards();
+
     this.createTitle();
-    this.createLevelButtons();
+    this.createRewardButtons();
     this.createBackButton();
   }
 
   createTitle() {
-    this.title = new Title(this.ctx, "Выбор уровня", "Собери звёзды!");
+    this.title = new Title(this.ctx, "Галерея наград за прохождение уровней", "Собери все!");
   }
 
-  createLevelButtons() {
+  createRewardButtons() {
     const allLevels = Levels;
-    const userResults = UserStorage.getAllLevelResults();
 
-    const buttonWidth = 140;
-    const buttonHeight = 140;
-    const spacing = 25;
+    const buttonWidth = 180;
+    const buttonHeight = 180;
+    const spacing = 20;
     const perRow = 5;
-    
-    this.levelButtons = [];
-    
+
+    this.rewardButtons = [];
+
     allLevels.forEach((level, index) => {
       const row = Math.floor(index / perRow);
       const col = index % perRow;
-      
-      const x = (GameConfig.WIDTH - (perRow * (buttonWidth + spacing))) / 2 + 
-                col * (buttonWidth + spacing);
-      const y = GameConfig.HEIGHT / 2 - 250 + row * (buttonHeight + spacing);
-      
-      const savedResult = userResults[level.id];
-      
-      let levelText = `${level.id}`;
 
-      var grade = savedResult ? savedResult.bestGrade || savedResult.result?.grade : null;
+      const x = (GameConfig.WIDTH - (perRow * (buttonWidth + spacing))) / 2 +
+        col * (buttonWidth + spacing);
+      const y = GameConfig.HEIGHT / 2 - 250 + row * (buttonHeight + spacing);
+
+      const levelId = `${level.id}`;
+      const levelReward = this.unlockedRewards[levelId];
+
+      const bgImage = levelReward ? this.state.rewardManager?.loadedImages.get(levelReward.id) : undefined;
+
+      let clickHandler;
+      if (bgImage)
+        clickHandler = () => this.initModal(bgImage);
 
       const button = new Button(
         x, y, buttonWidth, buttonHeight,
-        `${level}`,
-        levelText,
+        `level${level}`,
+        levelId,
         {
-          bgColor: this.getBackground(level),
-          hoverBgColor: this.getLevelHoverColor(level),
-          textColor: "#FFFFFF",
+          bgColor: "#d8d8d8",
+          hoverBgColor: "#d8d8d8",
           font: 'bold 48px "Comic Sans MS"',
           cornerRadius: 25,
           borderWidth: 4,
-          badgePosition: 'bottom',
-          showStars: true,
-          starsGrade: grade,
-          onClick: this.levelButtonHnadler(level.id)
+          disabled: !levelReward,
+          bgImage: bgImage,
+          onClick: clickHandler
         }
       );
-      
-      this.levelButtons.push(button);
+
+      this.rewardButtons.push(button);
     });
   }
 
-  getBackground(level) {
-    if (level?.difficulty) {
-      switch(level.difficulty) {
-        case 1:
-          return '#4ECDC4';
-        case 2:
-          return '#9D4EDD';
-        case 3:
-          return '#FF6B8B';
-      }
-    }
+  initModal(image) {
+    if (this.modal)
+      return;
 
-    return '#4ECDC4';
+    this.modal = new Modal(this.ctx, {
+      image, 
+      closeBtnHandler: () => this.closeModal()
+    });
   }
 
-  getLevelHoverColor(level) {
-    if (level?.difficulty) {
-      switch(level.difficulty) {
-        case 1:
-          return '#4ECDD7';
-        case 2:
-          return '#9D4EEF';
-        case 3:
-          return '#FF6BAF';
-      }
-    }
-
-    return '#4ECDC4';
+  closeModal() {
+    this.modal = undefined;
   }
 
   createBackButton() {
@@ -107,7 +95,7 @@ export class LevelsList extends GameScreen {
     const buttonHeight = Math.max(60, GameConfig.HEIGHT / 18);
     const startX = (GameConfig.WIDTH - buttonWidth) / 2;
 
-    const lastLevelButton = this.levelButtons[this.levelButtons.length - 1]
+    const lastLevelButton = this.rewardButtons[this.rewardButtons.length - 1]
     const startY = lastLevelButton.y + lastLevelButton.height + 60;
 
     const button = new Button(
@@ -124,24 +112,15 @@ export class LevelsList extends GameScreen {
         onClick: () => this.state.setState(State.UIStates.MENU)
       }
     );
-    
+
     this.buttons = [button];
-  }
-
-
-  levelButtonHnadler(levelId){
-    const state = this.state;
-    return function buttonHnadler()
-    {
-      state.setState(State.UIStates.GAME, levelId);
-    }
   }
 
   update() { 
     this.time = Date.now();
 
-    this.levelButtons.forEach((levelButton, index) => {
-      levelButton.update(index, this.time, levelButton.x, levelButton.y, levelButton.width, levelButton.height);
+    this.rewardButtons.forEach((rewardButton, index) => {
+      rewardButton.update(index, this.time, rewardButton.x, rewardButton.y, rewardButton.width, rewardButton.height);
     });
 
     this.buttons.forEach((button, index) => {
@@ -154,17 +133,20 @@ export class LevelsList extends GameScreen {
 
     this.title.render();
     
-    this.levelButtons.forEach(button => {
+    this.rewardButtons.forEach(button => {
       button.render(this.ctx);
     });
     
     this.buttons.forEach(button => {
       button.render(this.ctx);
     });
+
+    if (this.modal)
+      this.modal.render();
   }
 
   handleMouseMove(x, y) {
-    this.levelButtons.forEach(button => {
+    this.rewardButtons.forEach(button => {
       button.isHovered = button.containsPoint(x, y);
     });
 
@@ -174,7 +156,7 @@ export class LevelsList extends GameScreen {
   }
 
   handleMouseClick(x, y) {
-    this.levelButtons.forEach(button => {
+    this.rewardButtons.forEach(button => {
       if (button.containsPoint(x, y) && button.onClick) {
         button.onClick();
       }
@@ -185,5 +167,8 @@ export class LevelsList extends GameScreen {
         button.onClick();
       }
     });
+
+    if(this.modal && this.modal.closeBtnHandler && this.modal.containCloseButtonPoint(x, y))
+      this.modal.closeBtnHandler();
   }
 }

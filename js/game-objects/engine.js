@@ -10,6 +10,7 @@ export class GameEngine {
     this.onPhaseChange = null;
     this.onTimerUpdate = null;
     this.onResult = null;
+    this.onReward = null;
   }
 
   initialize(availableArea) {
@@ -262,6 +263,10 @@ export class GameEngine {
     this.gameState.changePhase(GameState.GamePhases.RESULT);
     const result = this.gameState.calculateResult();
 
+    this.showLevelResults(result);
+  }
+
+  showLevelResults(result) {
     if (this.onPhaseChange) {
       this.onPhaseChange(GameState.GamePhases.RESULT);
     }

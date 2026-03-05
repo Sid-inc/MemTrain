@@ -146,4 +146,20 @@ export class UserStorage {
       };
     }
   }
+
+  static addUnlockedReward(rewardData) {
+    const unlockedRewards = this.getUnlockedRewards();
+    unlockedRewards.push(rewardData);
+    localStorage.setItem('unlockedRewards', JSON.stringify(unlockedRewards));
+  }
+
+  static getUnlockedRewards() {
+    const data = localStorage.getItem('unlockedRewards');
+    return data ? JSON.parse(data) : [];
+  }
+
+  static getUnlockedRewardIds() {
+    const rewards = this.getUnlockedRewards();
+    return rewards.map(r => r.id);
+  }
 }
