@@ -11,7 +11,7 @@ export class RewardManager {
     this.totalToLoad = 0;
     this.loadedCount = 0;
 
-    this.geavingReward = null;
+    this.givingReward = null;
     this.needToGiaveReward = false;
   }
 
@@ -136,7 +136,7 @@ export class RewardManager {
   
   setReward(reward)
   {
-    this.geavingReward = reward;
+    this.givingReward = reward;
     this.needToGiaveReward = true;
   }
 }

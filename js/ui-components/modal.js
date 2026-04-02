@@ -1,4 +1,5 @@
 import { GameConfig } from "../config.js";
+import { Button } from "./button.js";
 
 export class Modal {
   constructor(ctx, options) {
@@ -6,13 +7,37 @@ export class Modal {
     this.title = options.title;
     this.subTitle = options.subTitle;
     this.image = options.image;
-    this.primaryBtnShow = options.primaryBtnShow ?? false;
     this.secondaryBtnShow = options.secondaryBtnShow ?? false;
+    this.primaryBtnText = options.primaryBtnText ?? "accept";
+    this.primaryBtnHandler = options.primaryBtnHandler;
     this.closeBtnHandler = options.closeBtnHandler;
+    this.primaryButton = null;
+
+    console.log(options);
+    if (this.primaryBtnHandler)
+      this.initPrimaryBtn();
   }
 
-  render()
-  {
+  initPrimaryBtn() {
+    this.primaryButton = new Button(
+      GameConfig.WIDTH / 2 - 100,
+      GameConfig.HEIGHT - 120,
+      200, 60,
+      "continue",
+      this.primaryBtnText,
+      {
+        bgColor: '#4ECDC4',
+        hoverBgColor: '#3DBBB3',
+        textColor: "#FFFFFF",
+        font: 'bold 24px "Comic Sans MS"',
+        cornerRadius: 15,
+        borderWidth: 3,
+        onClick: this.primaryBtnHandler
+      }
+    );
+  }
+
+  render() {
     const { ctx } = this;
     const width = GameConfig.WIDTH;
     const height = GameConfig.HEIGHT;
@@ -69,12 +94,19 @@ export class Modal {
       ctx.drawImage(this.image, imgX, imgY, imgSize, imgSize);
     }
 
-    if (this.closeBtnHandler)
-      this.renderCloseButton();
+    if (this.primaryBtnHandler) this.renderPrimaryButton();
+
+    if (this.closeBtnHandler) this.renderCloseButton();
   }
 
-  renderCloseButton()
-  {
+  renderPrimaryButton() {
+    console.log("render pb");
+    if (this.primaryButton) {
+      this.primaryButton.render(this.ctx);
+    }
+  }
+
+  renderCloseButton() {
     const { ctx } = this;
     const width = GameConfig.WIDTH;
     const height = GameConfig.HEIGHT;

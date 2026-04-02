@@ -1,6 +1,8 @@
 import { GameScreen } from "../base/game-screen.js";
 import { Button } from "../ui-components/button.js";
 import { GameConfig } from "../config.js";
+import { Modal } from "../ui-components/modal.js";
+import { State } from "../state.js";
 
 export class Reward extends GameScreen {
   constructor(ctx, state, rewardData) {
@@ -9,7 +11,7 @@ export class Reward extends GameScreen {
     this.result = rewardData.result;
     this.onContinue = rewardData.onContinue;
     this.rewardImage = null;
-    this.continueButton = null;
+    this.modal = null;
     this.particles = [];
     this.init();
   }
@@ -19,27 +21,24 @@ export class Reward extends GameScreen {
     if (this.state.rewardManager) {
       this.rewardImage = this.state.rewardManager.loadedImages.get(this.reward.id);
     }
-    
-    // Кнопка "Продолжить"
-    this.continueButton = new Button(
-      GameConfig.WIDTH / 2 - 100,
-      GameConfig.HEIGHT - 120,
-      200, 60,
-      "continue",
-      "Продолжить",
-      {
-        bgColor: '#4ECDC4',
-        hoverBgColor: '#3DBBB3',
-        textColor: "#FFFFFF",
-        font: 'bold 24px "Comic Sans MS"',
-        cornerRadius: 15,
-        borderWidth: 3,
-        onClick: () => this.onContinue()
-      }
-    );
+
+    console.log(this.onContinue);
+    this.modal = new Modal(this.ctx, {
+      image: this.rewardImage,
+      title: "🎉 Поздравляем! 🎉",
+      subTitle: "Вы прошли уровень на 100%!",
+      primaryBtnText: "Продолжить",
+      primaryBtnHandler: this.getContinueHndler()
+    });
     
     // Создаем частицы для эффекта
     this.createParticles();
+  }
+
+  getContinueHndler() {
+    return () => {
+      this.state.setState(State.UIStates.GAME);
+    }
   }
 
   createParticles() {
@@ -69,8 +68,6 @@ export class Reward extends GameScreen {
 
   render() {
     const { ctx } = this;
-    const width = GameConfig.WIDTH;
-    const height = GameConfig.HEIGHT;
     
     // Анимированные частицы
     this.updateParticles();
@@ -83,72 +80,8 @@ export class Reward extends GameScreen {
     });
     ctx.globalAlpha = 1;
     
-    // Основной контейнер
-    const containerWidth = width * 0.4;
-    const containerHeight = height * 0.7;
-    const containerX = (width - containerWidth) / 2;
-    const containerY = (height - containerHeight) / 2;
-    
-    // Градиентный фон контейнера
-    const gradient = ctx.createLinearGradient(
-      containerX, containerY,
-      containerX, containerY + containerHeight
-    );
-    gradient.addColorStop(0, 'rgba(78, 205, 196, 0.2)');
-    gradient.addColorStop(1, 'rgba(157, 78, 221, 0.2)');
-    
-    ctx.fillStyle = gradient;
-    ctx.strokeStyle = '#4ECDC4';
-    ctx.lineWidth = 4;
-    
-    // Скругленные углы
-    this.roundedRect(ctx, containerX, containerY, containerWidth, containerHeight, 20);
-    ctx.fill();
-    ctx.stroke();
-    
-    // Заголовок
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 48px "Comic Sans MS"';
-    ctx.textAlign = 'center';
-    ctx.fillText("🎉 Поздравляем! 🎉", width / 2, containerY + 80);
-    
-    // Подзаголовок
-    ctx.font = '28px "Comic Sans MS"';
-    ctx.fillText("Вы прошли уровень на 100%!", width / 2, containerY + 130);
-    
-    // Контейнер для награды
-    const rewardContainerY = containerY + 180;
-    
-    // Изображение награды
-    if (this.rewardImage) {
-      const imgSize = 400;
-      const imgX = width / 2 - imgSize / 2;
-      const imgY = rewardContainerY;
-      
-      // Рамка вокруг изображения
-      ctx.strokeStyle = '#FFD700';
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.roundRect(imgX - 10, imgY - 10, imgSize + 20, imgSize + 20, 15);
-      ctx.stroke();
-      
-      // Само изображение
-      ctx.drawImage(this.rewardImage, imgX, imgY, imgSize, imgSize);
-    } else {
-      // Запасной вариант если изображение не загружено
-      ctx.fillStyle = '#9D4EDD';
-      ctx.fillRect(width / 2 - 90, rewardContainerY, 400, 400);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 32px "Comic Sans MS"';
-      ctx.fillText("🎁", width / 2, rewardContainerY + 100);
-    }
-    
-    // Описание
-    ctx.font = '22px "Comic Sans MS"';
-    ctx.fillText("Награда добавлена в вашу коллекцию", width / 2, rewardContainerY + 450);
-    
-    // Кнопка "Продолжить"
-    this.continueButton.render(ctx);
+    if (this.modal)
+      this.modal.render();
   }
 
   roundedRect(ctx, x, y, width, height, radius) {
@@ -166,14 +99,14 @@ export class Reward extends GameScreen {
   }
 
   handleMouseMove(x, y) {
-    if (this.continueButton) {
-      this.continueButton.isHovered = this.continueButton.containsPoint(x, y);
+    if (this.modal.primaryButton) {
+      this.modal.primaryButton.isHovered = this.modal.primaryButton.containsPoint(x, y);
     }
   }
 
   handleMouseClick(x, y) {
-    if (this.continueButton && this.continueButton.containsPoint(x, y) && this.continueButton.onClick) {
-      this.continueButton.onClick();
+    if (this.modal && this.modal.primaryButton.containsPoint(x, y) && this.modal.primaryBtnHandler) {
+      this.modal.primaryButton.onClick();
       return true;
     }
     return false;

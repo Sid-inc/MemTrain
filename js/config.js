@@ -157,5 +157,12 @@ export const RewardsConfig = {
     { id: 15, imagePath: 'images/1770554080.png', name: 'Собака 4' },
     { id: 16, imagePath: 'images/1770554219.png', name: 'Собака 5' },
     { id: 17, imagePath: 'images/1770554450.png', name: 'Собака 6' },
+    { id: 18, imagePath: 'images/177418145816ab.png', name: 'Собака 7' },
+    { id: 19, imagePath: 'images/177418183333a6.png', name: 'Собака 8' },
+    { id: 20, imagePath: 'images/1774104278735e.png', name: 'Собака 9' },
+    { id: 21, imagePath: 'images/1774244436397c.png', name: 'Собака 10' },
+    { id: 22, imagePath: 'images/17741039545418.png', name: 'Собака 11' },
+    { id: 23, imagePath: 'images/17741040846343.png', name: 'Собака 12' },
+    { id: 24, imagePath: 'images/17742442379465.png', name: 'Собака 13' },
   ]
 };
