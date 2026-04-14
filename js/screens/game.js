@@ -30,7 +30,7 @@ export class Game extends GameScreen {
     this.timer = new Timer(this.ctx, "секунд");
     this.colorPalette = new ColorPalette(this.ctx);
     this.instruction = new Instruction(this.ctx);
-    this.resultPanel = new ResultPanel(this.ctx);
+    this.resultPanel = new ResultPanel(this.ctx, this.gameManager.levelId);
 
     this.gameManager.colorPalette = this.colorPalette;
     this.gameManager.resultPanel = this.resultPanel;
@@ -115,10 +115,17 @@ export class Game extends GameScreen {
     const result = this.gameManager.handleGameClick(x, y);
     if(result)
     {
+      console.log("result.type");
+      console.log(result.type);
       if (result.type === "RETURN_TO_MENU")
         this.state.setState(State.UIStates.MENU);
-      if (result.type === "GIVE_REWARD")
-        this.state.setState(State.UIStates.REWARD);
+      if (result.type === "NEXT_LEVEL")
+        this.state.setState(State.UIStates.GAME, this.gameManager.levelId + 1);
+      if (result.type === "GIVE_REWARD_THEN_MENU" || result.type === "GIVE_REWARD_THEN_NEXT")
+      {
+        var levelId = result.type !== "GIVE_REWARD_THEN_MENU" ? this.gameManager.levelId + 1 : undefined;
+        this.state.setState(State.UIStates.REWARD, levelId);
+      }
     }
   }
 }

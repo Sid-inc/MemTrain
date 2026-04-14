@@ -5,6 +5,7 @@ import { UserStorage } from "../user-data/user-storage.js";
 import { Button } from "../ui-components/button.js";
 import { Title } from "../ui-components/title.js";
 import { State } from "../state.js";
+import { ResponsiveHelper } from "../helpers/responsiveHelper.js";
 
 export class LevelsList extends GameScreen {
   constructor(ctx, state) {
@@ -29,8 +30,8 @@ export class LevelsList extends GameScreen {
     const allLevels = Levels;
     const userResults = UserStorage.getAllLevelResults();
 
-    const buttonWidth = 140;
-    const buttonHeight = 140;
+    const buttonWidth = ResponsiveHelper.getLevesButtonsSize();
+    const buttonHeight = buttonWidth;
     const spacing = 25;
     const perRow = 5;
     

@@ -1,4 +1,5 @@
 import { GameConfig } from "../config.js";
+import { ResponsiveHelper } from "../helpers/responsiveHelper.js";
 import { Button } from "./button.js";
 
 export class Modal {
@@ -13,7 +14,6 @@ export class Modal {
     this.closeBtnHandler = options.closeBtnHandler;
     this.primaryButton = null;
 
-    console.log(options);
     if (this.primaryBtnHandler)
       this.initPrimaryBtn();
   }
@@ -42,8 +42,8 @@ export class Modal {
     const width = GameConfig.WIDTH;
     const height = GameConfig.HEIGHT;
 
-    const containerWidth = width * 0.4;
-    const containerHeight = height * 0.7;
+    const containerWidth = ResponsiveHelper.getModalWidth();
+    const containerHeight = containerWidth;
     const containerX = (width - containerWidth) / 2;
     const containerY = (height - containerHeight) / 2;
 
@@ -78,8 +78,8 @@ export class Modal {
     }
 
     if (this.image) {
-      const imageContainerY = containerY + 180;
-      const imgSize = 400;
+      const imageContainerY = containerY + containerWidth * 0.2;
+      const imgSize = containerWidth * 0.7;
       const imgX = width / 2 - imgSize / 2;
       const imgY = imageContainerY;
       
@@ -111,8 +111,8 @@ export class Modal {
     const width = GameConfig.WIDTH;
     const height = GameConfig.HEIGHT;
 
-    const containerWidth = width * 0.4;
-    const containerHeight = height * 0.7;
+    const containerWidth = ResponsiveHelper.getModalWidth();
+    const containerHeight = containerWidth;
     const containerX = (width - containerWidth) / 2;
     const containerY = (height - containerHeight) / 2;
 
@@ -153,8 +153,8 @@ export class Modal {
     const width = GameConfig.WIDTH;
     const height = GameConfig.HEIGHT;
 
-    const containerWidth = width * 0.4;
-    const containerHeight = height * 0.7;
+    const containerWidth = ResponsiveHelper.getModalWidth();
+    const containerHeight = containerWidth;
     const containerX = (width - containerWidth) / 2;
     const containerY = (height - containerHeight) / 2;
 

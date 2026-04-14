@@ -1,15 +1,15 @@
 import { GameScreen } from "../base/game-screen.js";
-import { Button } from "../ui-components/button.js";
 import { GameConfig } from "../config.js";
 import { Modal } from "../ui-components/modal.js";
 import { State } from "../state.js";
 
 export class Reward extends GameScreen {
-  constructor(ctx, state, rewardData) {
+  constructor(ctx, state, rewardData, levelId) {
     super(ctx, state);
     this.reward = rewardData.reward;
     this.result = rewardData.result;
     this.onContinue = rewardData.onContinue;
+    this.levelId = levelId;
     this.rewardImage = null;
     this.modal = null;
     this.particles = [];
@@ -22,7 +22,6 @@ export class Reward extends GameScreen {
       this.rewardImage = this.state.rewardManager.loadedImages.get(this.reward.id);
     }
 
-    console.log(this.onContinue);
     this.modal = new Modal(this.ctx, {
       image: this.rewardImage,
       title: "🎉 Поздравляем! 🎉",
@@ -37,7 +36,10 @@ export class Reward extends GameScreen {
 
   getContinueHndler() {
     return () => {
-      this.state.setState(State.UIStates.GAME);
+      if (this.levelId)
+        this.state.setState(State.UIStates.GAME, this.levelId);
+      else
+        this.state.setState(State.UIStates.MENU);
     }
   }
 

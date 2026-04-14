@@ -138,7 +138,7 @@ export const Levels = [
 ];
 
 export const RewardsConfig = {
-  totalRewardsCount: 17,
+  totalRewardsCount: 24,
   rewards: [
     { id: 1, imagePath: 'images/1770465822.png', name: 'Кот 1' },
     { id: 2, imagePath: 'images/1770465914.png', name: 'Кот 2' },

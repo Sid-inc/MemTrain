@@ -1,4 +1,5 @@
 import { GameConfig } from "../config.js";
+import { ResponsiveHelper } from "../helpers/responsiveHelper.js";
 
 export class Title {
   constructor(ctx, title, subtitle) {
@@ -6,6 +7,7 @@ export class Title {
 
     this.title = title;
     this.subtitle = subtitle;
+    this.titleSize = ResponsiveHelper.getTitleSize();
   }
 
   render() {
@@ -32,7 +34,7 @@ export class Title {
     gradient.addColorStop(1, "#FFD166");
 
     ctx.fillStyle = gradient;
-    ctx.font = 'bold 68px "Comic Sans MS", cursive';
+    ctx.font = `bold ${this.titleSize}px "Comic Sans MS", cursive`;
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
 
@@ -40,7 +42,7 @@ export class Title {
 
     // Контур заголовка
     ctx.strokeStyle = "#FFFFFF";
-    ctx.lineWidth = 4;
+    ctx.lineWidth = this.titleSize / 17;
     ctx.strokeText(title, GameConfig.WIDTH / 2, 80);
 
     // Подзаголовок

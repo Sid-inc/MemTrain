@@ -5,8 +5,7 @@ export class Stars {
     this.ctx = ctx;
   }
 
-  render(centerX, y, grade, starSpacing = 70) {
-    const ctx = this.ctx;
+  render(ctx, centerX, y, grade, starSpacing = 70) {
     const starCount = State.getGradeConfig(grade).stars ?? 0;
     const totalWidth = 3 * starSpacing;
     const startX = centerX - totalWidth / 2 + starSpacing / 2;

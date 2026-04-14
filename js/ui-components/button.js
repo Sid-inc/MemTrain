@@ -51,8 +51,9 @@ export class Button {
 
       // Callback
       this.onClick = options.onClick || (() => { });
-    }
 
+      if (this.showStars) this.stars = new Stars();
+    }
   }
 
   containsPoint(x, y) {
@@ -302,11 +303,9 @@ export class Button {
   }
 
   renderStars(ctx) {
-    this.stars = new Stars(ctx);
-
     const centerX = this.x + this.width / 2;
     const y = this.y + this.height - 20;
-    this.stars.render(centerX, y, this.starsGrade, 30);
+    this.stars.render(ctx, centerX, y, this.starsGrade, 30);
   }
 
   // Для анимации нажатия

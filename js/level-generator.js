@@ -1,3 +1,5 @@
+import { ResponsiveHelper } from "./helpers/responsiveHelper.js";
+
 export class LevelGenerator {
   static generateColors(count) {
     // Контрастные цвета для детей
@@ -263,7 +265,7 @@ export class LevelGenerator {
 
     // Минимальный размер фигур
     const minShapeSize = 220;
-    const shapeSpacing = 80;
+    let shapeSpacing = 80;
 
     const effectiveWidth = availableArea.width;
 
@@ -276,26 +278,27 @@ export class LevelGenerator {
         minShapeSize,
         (effectiveWidth - (shapeCount + 1) * shapeSpacing) / shapeCount
       );
-
-      const startX = (availableArea.width - (shapeCount * (shapeSize + shapeSpacing))) / 2;
+      
+      const startX = ((effectiveWidth - (shapeCount * shapeSize + (shapeCount - 1) * shapeSpacing)) / 2) + shapeSize / 2;
       const centerY = availableArea.height / 2;
 
       shapes.forEach((shape, index) => {
         shape.position = {
-          x: startX + index * (shapeSize + shapeSpacing) + shapeSize / 2,
+          x: startX + index * (shapeSize + shapeSpacing),
           y: centerY
         };
         shape.size = shapeSize;
       });
     } else {
       // Располагаем в столбик
+      shapeSpacing = ResponsiveHelper.getActualColumnShapesSpace();
       const shapeSize = Math.min(
         minShapeSize,
         (availableArea.height - (shapeCount + 1) * shapeSpacing) / shapeCount
       );
 
-      const centerX = availableArea.width / 2;
-      const startY = (availableArea.height - (shapeCount * (shapeSize + shapeSpacing))) / 2;
+      const centerX = effectiveWidth / 2;
+      const startY = ((availableArea.height - (shapeCount * (shapeSize + shapeSpacing))) / 2) + 40;
 
       shapes.forEach((shape, index) => {
         shape.position = {

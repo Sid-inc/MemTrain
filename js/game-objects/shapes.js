@@ -33,22 +33,23 @@ export class ShapeRenderer {
 
   static getScaleDecrease(index, shapeSequence)
   {
-    switch(shapeSequence[index]) { 
+    switch(shapeSequence[index]) {
       case ShapeTypes.SPHERE:
         if (index > 1 && shapeSequence[index - 1] !== ShapeTypes.SPHERE)
           return 0.4;
         return 0.3;
       case ShapeTypes.TRIANGLE:
+        if (index >= 3) return 0.35;
         if (index > 1 && shapeSequence[index - 1] === ShapeTypes.SQUARE)
-          return 0.25;
-        return 0.1;
+          return 0.3;
+        return 0.25;
       case ShapeTypes.SQUARE:
         if (index > 1 && (shapeSequence[index - 1] === ShapeTypes.TRIANGLE) || (shapeSequence[index - 1] === ShapeTypes.RECTANGLE))
           return 0.35;
         return 0.2;
       case ShapeTypes.RECTANGLE:
-        return 0.05;
-      default: 
+        return 0.15;
+      default:
         return 0.3;
     }
   }
@@ -124,72 +125,7 @@ export class ShapeRenderer {
         console.warn(`Unknown shape type: ${shapeSettings.nestedShapeType}`);
     }
   }
-  // static drawCompositeShape(ctx, shape, phase, availableColors, userColors, isSelected, nestedShapeIndex) {
-  //   const { position, size, shapeSequence, colorIndexesSequence } = shape;
-  //   const radius = size / 2;
-
-  //   // Клоны массивов для рендера, чтобы не затереть исходные.
-  //   const renderShapeSequence = [...shapeSequence];
-  //   const renderColorIndexesSequence = [...colorIndexesSequence];
-
-  //   const outerShapeType = renderShapeSequence.shift();
-  //   const outerColorIndex = renderColorIndexesSequence.shift();
-  //   const outerRadiusValue = 1;
-  //   const isSelectedOuterSHape = isSelected && nestedShapeIndex === -1;
-  //   let shapeIndex = 0;
-
-  //   const outerShapeSettings = {
-  //     phase,
-  //     availableColors,
-  //     userColor: userColors[shapeIndex],
-  //     isSelected: isSelectedOuterSHape,
-  //     nestedShapeType: outerShapeType,
-  //     nestedShapeColorIndex: outerColorIndex,
-  //     radius,
-  //     radiusValue: outerRadiusValue,
-  //     position,
-  //   }
-
-  //   this.drawSphere(ctx, outerShapeSettings);
-  //   shapeIndex++;
-
-  //   const isSelectedInnerShape = isSelected && shapeIndex === nestedShapeIndex;
-  //   if (renderShapeSequence.length != 0) {
-  //     const nestedShapeType = renderShapeSequence.shift();
-  //     const nestedShapeColorIndex = renderColorIndexesSequence.shift();
-  //     const radiusValue = 0.7;
-  //     const shapeSettings = {
-  //       phase,
-  //       availableColors,
-  //       userColor: userColors[shapeIndex],
-  //       isSelected: isSelectedInnerShape,
-  //       nestedShapeType,
-  //       nestedShapeColorIndex,
-  //       radius,
-  //       radiusValue,
-  //       position
-  //     }
-  //     this.drawNestedShape(ctx, shapeSettings);
-  //   }
-  // }
-
-  // static drawNestedShape(ctx, shapeSettings) {
-  //   switch (shapeSettings.nestedShapeType) {
-  //     case ShapeTypes.SPHERE:
-  //       this.drawSphere(ctx, shapeSettings);
-  //       break;
-  //     case ShapeTypes.TRIANGLE:
-  //       this.drawTriangle(ctx, shapeSettings);
-  //       break;
-  //     case ShapeTypes.SQUARE:
-  //       this.drawSquare(ctx, shapeSettings);
-  //       break;
-  //     case ShapeTypes.RECTANGLE:
-  //       this.drawRectangle(ctx, shapeSettings);
-  //       break;
-  //   }
-  // }
-
+  
   static drawSphere(ctx, shapeSettings) {
     const { phase, availableColors, userColor, isSelected, nestedShapeColorIndex, radius, radiusValue, position } = shapeSettings;
     const innerRadius = radius * radiusValue;

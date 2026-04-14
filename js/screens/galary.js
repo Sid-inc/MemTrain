@@ -5,6 +5,7 @@ import { Levels } from "../config.js";
 import { Title } from "../ui-components/title.js";
 import { State } from "../state.js";
 import { Modal } from "../ui-components/modal.js";
+import { ResponsiveHelper } from "../helpers/responsiveHelper.js";
 
 export class Galary extends GameScreen {
   constructor(ctx, state) {
@@ -32,8 +33,8 @@ export class Galary extends GameScreen {
   createRewardButtons() {
     const allLevels = Levels;
 
-    const buttonWidth = 180;
-    const buttonHeight = 180;
+    const buttonWidth = ResponsiveHelper.getGalaryButtonSize() ?? 180;
+    const buttonHeight = buttonWidth;
     const spacing = 20;
     const perRow = 5;
 

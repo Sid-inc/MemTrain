@@ -9,6 +9,7 @@ export class GameManager {
     this.engine = null;
     this.gameLoopId = null;
     this.gameState = null;
+    this.levelId = levelId;
 
     this.colorPalette = null;
     this.resultPanel = null;
@@ -44,40 +45,12 @@ export class GameManager {
         if (reward) {
           this.rewardManager.unlockReward(reward.id, levelConfig.id);
           
-          // Вызываем callback для показа награды
-          // if (this.onReward) {
-          //   this.onReward({
-          //     reward,
-          //     result,
-          //     continueToResults: () => this.showLevelResults(result)
-          //   });
-          // }
+
           this.rewardManager.setReward({reward, result});
         }
       }
     };
-
-    // this.engine.onReward = (rewardData) => {
-    //   this.rewardManager.setReward(rewardData);
-    //   // this.showRewardScreen(rewardData);
-    // };
   }
-
-  // showRewardScreen(rewardData) {
-  //   // Показывает экран с наградой
-  //   // rewardData содержит: reward, result, continueToResults callback
-  //   const rewardUI = new RewardScreen({
-  //     reward: rewardData.reward,
-  //     result: rewardData.result,
-  //     onContinue: () => {
-  //       // При нажатии "Продолжить" показываем обычные результаты
-  //       rewardData.continueToResults();
-  //       rewardUI.hide();
-  //     }
-  //   });
-    
-  //   rewardUI.show();
-  // }
 
   update()
   {
@@ -102,10 +75,15 @@ export class GameManager {
       return clickResult;
     }
     
-    // Проверяем клик по кнопке возврата
-    if (this.resultPanel.isReturnButtonClicked(x, y)) {
+    if (this.resultPanel.isMenuButtonClicked(x, y)) {
       this.resetEngine();
-      const nextStep = this.rewardManager.needToGiaveReward ? "GIVE_REWARD" : "RETURN_TO_MENU"
+      const nextStep = this.rewardManager.needToGiaveReward ? "GIVE_REWARD_THEN_MENU" : "RETURN_TO_MENU"
+      return { type: nextStep };
+    }
+
+    if (this.resultPanel.isNextButtonClicked(x, y)) {
+      this.resetEngine();
+      const nextStep = this.rewardManager.needToGiaveReward ? "GIVE_REWARD_THEN_NEXT" : "NEXT_LEVEL"
       return { type: nextStep };
     }
     

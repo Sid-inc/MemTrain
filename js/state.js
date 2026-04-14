@@ -54,7 +54,7 @@ export class State {
           this.activeScreen = new LevelsList(this.ctx, this);
           break;
         case State.UIStates.REWARD:
-          this.activeScreen = new Reward(this.ctx, this, this.rewardManager.givingReward);
+          this.activeScreen = new Reward(this.ctx, this, this.rewardManager.givingReward, levelId);
           break;
         case State.UIStates.GALARY:
           this.activeScreen = new Galary(this.ctx, this);
