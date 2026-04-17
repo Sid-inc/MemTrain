@@ -264,7 +264,7 @@ export class LevelGenerator {
     const shapeCount = shapes.length;
 
     // Минимальный размер фигур
-    const minShapeSize = 220;
+    let minShapeSize = 220;
     let shapeSpacing = 80;
 
     const effectiveWidth = availableArea.width;
@@ -291,6 +291,7 @@ export class LevelGenerator {
       });
     } else {
       // Располагаем в столбик
+      minShapeSize = ResponsiveHelper.getShapesSize();
       shapeSpacing = ResponsiveHelper.getActualColumnShapesSpace();
       const shapeSize = Math.min(
         minShapeSize,

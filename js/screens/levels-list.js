@@ -33,11 +33,12 @@ export class LevelsList extends GameScreen {
     const buttonWidth = ResponsiveHelper.getLevesButtonsSize();
     const buttonHeight = buttonWidth;
     const spacing = 25;
-    const perRow = 5;
+    const perRow = ResponsiveHelper.getLevesRowsCount();
     
     this.levelButtons = [];
     
     allLevels.forEach((level, index) => {
+      const fontSize = ResponsiveHelper.getLevelButtonsFontSize();
       const row = Math.floor(index / perRow);
       const col = index % perRow;
       
@@ -59,7 +60,7 @@ export class LevelsList extends GameScreen {
           bgColor: this.getBackground(level),
           hoverBgColor: this.getLevelHoverColor(level),
           textColor: "#FFFFFF",
-          font: 'bold 48px "Comic Sans MS"',
+          font: `bold ${fontSize}px "Comic Sans MS"`,
           cornerRadius: 25,
           borderWidth: 4,
           badgePosition: 'bottom',

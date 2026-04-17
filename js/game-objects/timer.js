@@ -1,3 +1,5 @@
+import { ResponsiveHelper } from "../helpers/responsiveHelper.js";
+
 export class Timer {
   constructor(ctx, text) {
     this.ctx = ctx;
@@ -7,8 +9,8 @@ export class Timer {
   render(availableArea, timeLeft, totalTime) {
     const ctx = this.ctx;
     const centerX = availableArea.width / 2;
-    const y = 40;
-    const width = 400;
+    const {topOffset, width} = ResponsiveHelper.getTimerParams();
+    const y = topOffset;
     const height = 40;
 
     // Фон таймера

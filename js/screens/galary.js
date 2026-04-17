@@ -33,10 +33,10 @@ export class Galary extends GameScreen {
   createRewardButtons() {
     const allLevels = Levels;
 
-    const buttonWidth = ResponsiveHelper.getGalaryButtonSize() ?? 180;
+    const buttonWidth = ResponsiveHelper.getGalaryButtonSize();
     const buttonHeight = buttonWidth;
     const spacing = 20;
-    const perRow = 5;
+    const perRow = ResponsiveHelper.getGalaryRowsCount();
 
     this.rewardButtons = [];
 

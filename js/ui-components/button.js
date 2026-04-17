@@ -1,3 +1,4 @@
+import { ResponsiveHelper } from "../helpers/responsiveHelper.js";
 import { Stars } from "./stars.js";
 
 export class Button {
@@ -305,7 +306,8 @@ export class Button {
   renderStars(ctx) {
     const centerX = this.x + this.width / 2;
     const y = this.y + this.height - 20;
-    this.stars.render(ctx, centerX, y, this.starsGrade, 30);
+    const startsSize = ResponsiveHelper.getStarSize();
+    this.stars.render(ctx, centerX, y, this.starsGrade, startsSize);
   }
 
   // Для анимации нажатия

@@ -1,15 +1,19 @@
+import { ResponsiveHelper } from "../helpers/responsiveHelper.js";
+
 export class Instruction {
   constructor(ctx) {
     this.ctx = ctx;
   }
 
   render(instruction, emoji, availablWidth) {
-    const y = 120; // Ниже таймера
+    const fontSize = ResponsiveHelper.getInstructionFontSize();
+    const { topOffset } = ResponsiveHelper.getTimerParams();
+    const y = topOffset + 80; // Ниже таймера
 
     const ctx = this.ctx;
     ctx.save();
 
-    ctx.font = 'bold 24px "Comic Sans MS"';
+    ctx.font = `bold ${fontSize}px "Comic Sans MS"`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 

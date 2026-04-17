@@ -8,6 +8,7 @@ export class Title {
     this.title = title;
     this.subtitle = subtitle;
     this.titleSize = ResponsiveHelper.getTitleSize();
+    this.subTitleSize = ResponsiveHelper.getSubTitleSize();
   }
 
   render() {
@@ -45,10 +46,11 @@ export class Title {
     ctx.lineWidth = this.titleSize / 17;
     ctx.strokeText(title, GameConfig.WIDTH / 2, 80);
 
+    const subtitleOffset = this.subTitleSize < 28 ? 140 : 160;
     // Подзаголовок
-    ctx.font = 'italic 28px "Comic Sans MS", cursive';
+    ctx.font = `italic ${this.subTitleSize}px "Comic Sans MS", cursive`;
     ctx.fillStyle = "#118AB2";
-    ctx.fillText(subtitle, GameConfig.WIDTH / 2, 160);
+    ctx.fillText(subtitle, GameConfig.WIDTH / 2, subtitleOffset);
 
     ctx.restore();
   }

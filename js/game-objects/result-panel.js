@@ -2,6 +2,7 @@ import { State } from "../state.js";
 import { Button } from "../ui-components/button.js";
 import { Stars } from "../ui-components/stars.js";
 import { Levels, GameConfig } from "../config.js";
+import { ResponsiveHelper } from "../helpers/responsiveHelper.js";
 
 export class ResultPanel {
   constructor(ctx, levelId) {
@@ -16,13 +17,12 @@ export class ResultPanel {
   {
     this.stars = new Stars(this.ctx);
     var existNextLevel = this.checkExistLevel(levelId + 1);
-    
-    const buttonWidth = 225;
-    const buttonHeight = 70;
+    const { buttonWidth, buttonHeight } = ResponsiveHelper.getResultPanelParams();
+
     let centerX = GameConfig.WIDTH  / 2;
     const centerY = GameConfig.HEIGHT / 2 + 250;
 
-    centerX = existNextLevel ? centerX - 225 : centerX - buttonWidth / 2;
+    centerX = existNextLevel ? centerX - buttonWidth : centerX - buttonWidth / 2;
 
     this.buttons.push(
       new Button(
@@ -44,7 +44,7 @@ export class ResultPanel {
     if (existNextLevel)
       this.buttons.push(
         new Button(
-          centerX + 250, centerY - buttonHeight / 2, buttonWidth, buttonHeight,
+          centerX + buttonWidth + 25, centerY - buttonHeight / 2, buttonWidth, buttonHeight,
           "next",
           "Продолжить",
           {
@@ -66,6 +66,7 @@ export class ResultPanel {
   }
 
   render(result, availableArea) {
+    const { panelWidth, statFontSize, titleFontSize } = ResponsiveHelper.getResultPanelParams();
     const ctx = this.ctx;
     const centerX = availableArea.width / 2;
     const centerY = availableArea.height / 2;
@@ -82,7 +83,7 @@ export class ResultPanel {
     ctx.shadowOffsetY = 10;
 
     ctx.beginPath();
-    ctx.roundRect(centerX - 300, centerY - 250, 600, 500, 30);
+    ctx.roundRect(centerX - (panelWidth / 2), centerY - 250, panelWidth, 500, 30);
     ctx.fill();
     ctx.stroke();
     ctx.shadowColor = "transparent";
@@ -95,7 +96,7 @@ export class ResultPanel {
 
     // Заголовок
     ctx.fillStyle = gradeConfig.color;
-    ctx.font = 'bold 48px "Comic Sans MS"';
+    ctx.font = `bold ${titleFontSize}px "Comic Sans MS"`;
     ctx.fillText(gradeConfig.title, centerX, centerY - 90);
 
     // Подзаголовок
@@ -105,7 +106,7 @@ export class ResultPanel {
 
     // Результат
     ctx.fillStyle = '#333333';
-    ctx.font = 'bold 36px "Comic Sans MS"';
+    ctx.font = `bold ${statFontSize}px "Comic Sans MS"`;
     ctx.fillText(
       `Правильных ответов: ${result.correct} из ${result.total}`,
       centerX,
