@@ -1,9 +1,11 @@
 import { UI } from "./ui.js";
 import { GameConfig } from "./config.js";
+import { SoundManager } from "./sound-manager.js";
 
 export class App {
   constructor() {
     this.ui = null;
+    this.soundManager = new SoundManager();
   }
 
   async initialize() {
@@ -15,7 +17,7 @@ export class App {
   }
 
   initializeUI() {
-    this.ui = new UI();
+    this.ui = new UI(this.soundManager);
     this.ui.init();
   }
 }

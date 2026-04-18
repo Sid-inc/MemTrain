@@ -4,8 +4,9 @@ import { UserStorage } from "./user-data/user-storage.js";
 import { Levels, GameConfig } from "./config.js";
 
 export class GameManager {
-  constructor(levelId, rewardManager) {
+  constructor(levelId, rewardManager, soundManager) {
     this.rewardManager = rewardManager;
+    this.soundManager = soundManager;
     this.engine = null;
     this.gameLoopId = null;
     this.gameState = null;
@@ -36,7 +37,11 @@ export class GameManager {
       UserStorage.saveLevelResult(levelId, result);
       UserStorage.updateStats(result);
 
-          //TODO: сделать после showLevelResults
+      if(result.percentage === 100) 
+        this.soundManager.play('win');
+      else
+        this.soundManager.play('lose');
+
       if (result.percentage === 100 && 
           !this.rewardManager.hasUnlockedRewardForLevel(levelConfig.id)) {
         
@@ -44,8 +49,6 @@ export class GameManager {
         
         if (reward) {
           this.rewardManager.unlockReward(reward.id, levelConfig.id);
-          
-
           this.rewardManager.setReward({reward, result});
         }
       }
@@ -64,6 +67,7 @@ export class GameManager {
     const colorIndex = this.colorPalette.isColorClicked(x, y);
     
     if (colorIndex !== -1) {
+      this.soundManager.play('setColor');
       const result = this.engine.selectColor(colorIndex);
       this.colorPalette.hide();
       return result;
@@ -71,20 +75,26 @@ export class GameManager {
     
     // Проверяем клик по фигуре
     const clickResult = this.engine.handleClick(x, y);
+
     if (clickResult && clickResult.type === "SHAPE_SELECTED") {
+      this.soundManager.play('click');
       return clickResult;
     }
     
-    if (this.resultPanel.isMenuButtonClicked(x, y)) {
-      this.resetEngine();
-      const nextStep = this.rewardManager.needToGiaveReward ? "GIVE_REWARD_THEN_MENU" : "RETURN_TO_MENU"
-      return { type: nextStep };
-    }
-
-    if (this.resultPanel.isNextButtonClicked(x, y)) {
-      this.resetEngine();
-      const nextStep = this.rewardManager.needToGiaveReward ? "GIVE_REWARD_THEN_NEXT" : "NEXT_LEVEL"
-      return { type: nextStep };
+    if (this.gameState.currentPhase === GameState.GamePhases.RESULT) {
+      if (this.resultPanel.isMenuButtonClicked(x, y)) {
+        this.soundManager.play('click');
+        this.resetEngine();
+        const nextStep = this.rewardManager.needToGiaveReward ? "GIVE_REWARD_THEN_MENU" : "RETURN_TO_MENU"
+        return { type: nextStep };
+      }
+  
+      if (this.resultPanel.isNextButtonClicked(x, y)) {
+        this.soundManager.play('click');
+        this.resetEngine();
+        const nextStep = this.rewardManager.needToGiaveReward ? "GIVE_REWARD_THEN_NEXT" : "NEXT_LEVEL"
+        return { type: nextStep };
+      }
     }
     
     if (this.gameState.selectedShape)

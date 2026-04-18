@@ -3,11 +3,12 @@ import { Renderer } from "./renderer.js"
 import { GameConfig } from "./config.js";
 
 export class UI {
-  constructor() {
+  constructor(soundManager) {
     this.canvas = null;
     this.ctx = null;
     this.state = null;
     this.renderer = null;
+    this.soundManager = soundManager;
 
     this.mouseX = 0;
     this.mouseY = 0;
@@ -21,7 +22,7 @@ export class UI {
     this.canvas = document.querySelector("canvas");
     this.ctx = this.canvas.getContext("2d");
 
-    this.state = new State(this.ctx);
+    this.state = new State(this.ctx, this.soundManager);
     this.renderer = new Renderer(this.ctx, this.state);
 
     this.setupEventListeners();
@@ -47,6 +48,16 @@ export class UI {
         clientY: touch.clientY
       });
     });
+
+    const unlockAudio = async () => {
+        await this.soundManager.unlock();
+        // можно воспроизвести короткий тестовый звук (если загружен)
+        this.soundManager.play('click'); // например
+        document.body.removeEventListener('touchstart', unlockAudio);
+        document.body.removeEventListener('click', unlockAudio);
+    };
+    document.body.addEventListener('touchstart', unlockAudio);
+    document.body.addEventListener('click', unlockAudio);
   }
 
   handleMouseMove(e) {

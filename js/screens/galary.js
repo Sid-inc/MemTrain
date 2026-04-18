@@ -8,12 +8,13 @@ import { Modal } from "../ui-components/modal.js";
 import { ResponsiveHelper } from "../helpers/responsiveHelper.js";
 
 export class Galary extends GameScreen {
-  constructor(ctx, state) {
+  constructor(ctx, state, soundManager) {
     super(ctx, state);
     this.buttons = [];
     this.title = null;
     this.rewardButtons = [];
     this.unlockedRewards = [];
+    this.soundManager = soundManager;
     this.init();
   }
 
@@ -55,7 +56,10 @@ export class Galary extends GameScreen {
 
       let clickHandler;
       if (bgImage)
-        clickHandler = () => this.initModal(bgImage);
+        clickHandler = () => {
+          this.soundManager.play('click');
+          this.initModal(bgImage);
+        }
 
       const button = new Button(
         x, y, buttonWidth, buttonHeight,
@@ -88,6 +92,7 @@ export class Galary extends GameScreen {
   }
 
   closeModal() {
+    this.soundManager.play('click');
     this.modal = undefined;
   }
 
@@ -110,7 +115,10 @@ export class Galary extends GameScreen {
         font: 'bold 24px "Comic Sans MS"',
         cornerRadius: 15,
         borderWidth: 3,
-        onClick: () => this.state.setState(State.UIStates.MENU)
+        onClick: () => {
+          this.soundManager.play('click');
+          this.state.setState(State.UIStates.MENU);
+        }
       }
     );
 

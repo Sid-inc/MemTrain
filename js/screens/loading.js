@@ -3,9 +3,10 @@ import { GameConfig } from "../config.js";
 import { State } from "../state.js";
 
 export class Loading extends GameScreen {
-  constructor(ctx, state, rewardManager) {
+  constructor(ctx, state, rewardManager, soundManager) {
     super(ctx, state);
     this.rewardManager = rewardManager;
+    this.soundManager = soundManager;
     this.progress = 0;
     this.loaded = 0;
     this.total = 0;
@@ -15,8 +16,30 @@ export class Loading extends GameScreen {
     this.init();
   }
 
-  init(){
+  async init(){
+    await this.initSounds();
     this.rewardManager.initialize();
+    this.updateProgress(100, 0, 0);
+  }
+
+  async initSounds(){
+    const soundList = [
+      { name: 'click', url: './sounds/click.mp3' },
+      { name: 'win',   url: './sounds/win.mp3' },
+      { name: 'setColor', url: './sounds/color.mp3' },
+      { name: 'lose', url: './sounds/lose.mp3' }
+    ];
+    let loadedSounds = 0;
+    const totalSounds = soundList.length;
+    // Обновляем прогресс по мере загрузки звуков
+    for (const s of soundList) {
+      await this.soundManager.load(s.name, s.url);
+      loadedSounds++;
+      const soundProgress = (loadedSounds / totalSounds) * 30; // 30% от прогресса на звуки
+      // предположим, rewardManager даёт прогресс 0..70, прибавим звуки
+      // но лучше управлять прогрессом вручную
+      this.updateProgress(soundProgress + 0, 0, 0); // упрощённо
+    }
   }
 
   updateProgress(progress, loaded, total) {

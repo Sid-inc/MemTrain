@@ -124,7 +124,7 @@ export class ResponsiveHelper {
 
   static getStarSize() {
     if (GameConfig.WIDTH >= 820)
-      return 70;
+      return 40;
     if (GameConfig.WIDTH >= 430)
       return 15;
     if (GameConfig.WIDTH >= 390)

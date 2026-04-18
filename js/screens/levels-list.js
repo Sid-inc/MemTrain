@@ -8,11 +8,12 @@ import { State } from "../state.js";
 import { ResponsiveHelper } from "../helpers/responsiveHelper.js";
 
 export class LevelsList extends GameScreen {
-  constructor(ctx, state) {
+  constructor(ctx, state, soundManager) {
     super(ctx, state);
     this.buttons = [];
     this.title = null;
     this.levelButtons = [];
+    this.soundManager = soundManager;
     this.init();
   }
 
@@ -184,6 +185,7 @@ export class LevelsList extends GameScreen {
 
     this.buttons.forEach(button => {
       if (button.containsPoint(x, y) && button.onClick) {
+        this.soundManager.play('click');
         button.onClick();
       }
     });

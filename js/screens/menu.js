@@ -6,9 +6,10 @@ import { Title } from "../ui-components/title.js";
 import { Decorations } from "../ui-components/decorations.js";
 
 export class Menu extends GameScreen {
-  constructor(ctx, state) {
+  constructor(ctx, state, soundManager) {
     super(ctx, state);
     
+    this.soundManager = soundManager;
     this.buttons = [];
     this.title = null;
     this.decorations = null;
@@ -36,21 +37,21 @@ export class Menu extends GameScreen {
         text: "🎮 ИГРАТЬ",
         colors: { bg: "#FF6B8B", hover: "#FF8FA8" },
         borderColor: "#FF8FA8",
-        onClick: this.menuButtonHnadler(State.UIStates.GAME)
+        onClick: this.menuButtonHnadler(State.UIStates.GAME, this.soundManager)
       },
       {
         value: "levels",
         text: "📚 УРОВНИ",
         colors: { bg: "#4ECDC4", hover: "#7CDFD7" },
         borderColor: "#7CDFD7",
-        onClick: this.menuButtonHnadler(State.UIStates.LEVELS)
+        onClick: this.menuButtonHnadler(State.UIStates.LEVELS, this.soundManager)
       },
       {
         value: "galary",
         text: "⭐ ГАЛЕРЕЯ",
         colors: { bg: "#9D4EDD", hover: "#B16FE5" },
         borderColor: "#B16FE5",
-        onClick: this.menuButtonHnadler(State.UIStates.GALARY)
+        onClick: this.menuButtonHnadler(State.UIStates.GALARY, this.soundManager)
       }
     ];
 
@@ -81,10 +82,11 @@ export class Menu extends GameScreen {
     });
   }
 
-  menuButtonHnadler(newState) {
+  menuButtonHnadler(newState, soundManager) {
     const state = this.state;
     return function buttonHnadler()
     {
+      soundManager.play('click');
       state.setState(newState);
     }
   };

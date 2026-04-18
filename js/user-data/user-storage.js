@@ -8,7 +8,7 @@ export class UserStorage {
       if (!data.levels) {
         data.levels = {};
       }
-      
+
       data.levels[levelId] = {
         result,
         timestamp: Date.now(),

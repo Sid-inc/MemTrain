@@ -10,11 +10,12 @@ import { Reward } from "./screens/reward.js";
 import { Galary } from "./screens/galary.js";
 
 export class State {
-  constructor(ctx) {
+  constructor(ctx, soundManager) {
     this.ctx = ctx;
     this.UIState = State.UIStates.LOADING;
+    this.soundManager = soundManager;
     this.rewardManager = new RewardManager();
-    this.activeScreen = new Loading(this.ctx, this, this.rewardManager);
+    this.activeScreen = new Loading(this.ctx, this, this.rewardManager, this.soundManager);
   }
 
   static UIStates = {
@@ -40,24 +41,24 @@ export class State {
 
       switch (this.UIState) {
         case State.UIStates.LOADING:
-          this.activeScreen = new Loading(this.ctx, this, this.rewardManager);
+          this.activeScreen = new Loading(this.ctx, this, this.rewardManager, this.soundManager);
           break;
         case State.UIStates.MENU:
-          this.activeScreen = new Menu(this.ctx, this);
+          this.activeScreen = new Menu(this.ctx, this, this.soundManager);
           break;
         case State.UIStates.GAME:
           var id = levelId ?? this.getRelevantLevelId();
-          const gameManager = new GameManager(id, this.rewardManager);
+          const gameManager = new GameManager(id, this.rewardManager, this.soundManager);
           this.activeScreen = new Game(this.ctx, this, gameManager);
           break;
         case State.UIStates.LEVELS:
-          this.activeScreen = new LevelsList(this.ctx, this);
+          this.activeScreen = new LevelsList(this.ctx, this, this.soundManager);
           break;
         case State.UIStates.REWARD:
           this.activeScreen = new Reward(this.ctx, this, this.rewardManager.givingReward, levelId);
           break;
         case State.UIStates.GALARY:
-          this.activeScreen = new Galary(this.ctx, this);
+          this.activeScreen = new Galary(this.ctx, this, this.soundManager);
           break;
       }
 
